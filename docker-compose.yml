@@ -1,0 +1,23 @@
+version: '3.8'
+
+volumes:
+  postgres-data:
+
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=acronym_dev
+      - POSTGRES_PASSWORD=postgrespw
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - 5000:5000
+    volumes:
+      - ./backend:/python-docker
