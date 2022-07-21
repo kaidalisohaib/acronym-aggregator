@@ -5,5 +5,5 @@ export default class Router extends EmberRouter {
   location = config.locationType;
   rootURL = config.rootURL;
 }
-// asdasdj
+
 Router.map(function () {});

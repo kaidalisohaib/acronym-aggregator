@@ -7,7 +7,7 @@ FROM node:16.16.0
 EXPOSE 4200 7020 7357
 
 # run ember server on container start
-CMD ["ember", "serve", "--proxy", "http://127.0.0.1:5000"]
+CMD ["ember", "serve"]
 
 WORKDIR /ember-app
 
@@ -17,21 +17,21 @@ RUN \
     apt-get update -y &&\
     apt-get install -y python-dev
 
-# install watchman
-# Note: See the README.md to find out how to increase the
-# fs.inotify.max_user_watches value so that watchman will
-# work better with ember projects.
-RUN \
-    git clone --branch=v4.9.0 --depth=1 https://github.com/facebook/watchman.git &&\
-    cd watchman &&\
-    ./autogen.sh &&\
-    CXXFLAGS=-Wno-error ./configure &&\
-    make &&\
-    make install
+# # install watchman
+# # Note: See the README.md to find out how to increase the
+# # fs.inotify.max_user_watches value so that watchman will
+# # work better with ember projects.
+# RUN \
+#     git clone --branch=v4.9.0 --depth=1 https://github.com/facebook/watchman.git &&\
+#     cd watchman &&\
+#     ./autogen.sh &&\
+#     CXXFLAGS=-Wno-error ./configure &&\
+#     make &&\
+#     make install
 
-# # install bower
-RUN \
-    npm install -g bower@1.8.8
+# # # install bower
+# RUN \
+#     npm install -g bower@1.8.8
 
 # install chrome for default testem config (as of ember-cli 2.15.0)
 RUN \
