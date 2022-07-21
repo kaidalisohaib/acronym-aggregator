@@ -2,6 +2,7 @@ version: '3.8'
 
 volumes:
   postgres-data:
+  node_modules:
 
 
 services:
@@ -15,9 +16,28 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
   backend:
+    env_file:
+      - ./backend/.env
     build:
       context: ./backend
     ports:
       - 5000:5000
     volumes:
-      - ./backend:/python-docker
+      - ./backend:/flask-app
+    depends_on:
+      - postgres
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/ember-app
+      - .bash_history:/root/.bash_history
+      - node_modules:/ember-app/node_modules
+    tmpfs:
+      - /ember-app/tmp
+    ports:
+      - "4200:4200"
+      - "7020:7020"
+      - "7357:7357"
+    depends_on:
+      - backend
