@@ -1,0 +1,29 @@
+{{page-title 'Index'}}
+
+<select onchange={{action (mut this.display_per_page) value='target.value'}}>
+  <option value='1'>1</option>
+  <option value='2'>2</option>
+  <option value='3'>3</option>
+  <option value='4'>4</option>
+  <option value='-1' selected='selected'>All</option>
+</select>
+<p>{{this.display_per_page}}</p>
+<h1>THIS IS THE INDEX</h1>
+<table>
+  <tr>
+    <th>Acronym</th>
+    <th>Meaning</th>
+    <th>Comment</th>
+    <th>Company</th>
+    <th>Created by</th>
+  </tr>
+  {{#each @model as |acronym|}}
+    <tr>
+      <td>{{acronym.acronym}}</td>
+      <td>{{acronym.meaning}}</td>
+      <td>{{acronym.comment}}</td>
+      <td>{{acronym.company}}</td>
+      <td>{{acronym.created_by}}</td>
+    </tr>
+  {{/each}}
+</table>

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from app import db, ma
+from marshmallow_jsonapi import Schema, fields
 
 
 class Acronym(db.Model):
@@ -9,8 +10,8 @@ class Acronym(db.Model):
     meaning = db.Column(db.String(), nullable=False)
     comment = db.Column(db.String(), nullable=True)
     company = db.Column(db.String(), nullable=False)
-    created = db.Column(db.DateTime, default=datetime.utcnow())
-    last_modified = db.Column(db.DateTime, onupdate=datetime.utcnow())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow())
+    last_modified_at = db.Column(db.DateTime, onupdate=datetime.utcnow())
     created_by = db.Column(db.String(), nullable=False)
     last_modified_by = db.Column(db.String(), nullable=False)
 
@@ -27,21 +28,28 @@ class Acronym(db.Model):
         return "<Acronym id:{} acronym:{}>".format(self.id, self.acronym)
 
 
-class AcronymSchema(ma.Schema):
+class AcronymSchema(Schema):
     class Meta:
-        fields = (
-            "id",
-            "acronym",
-            "meaning",
-            "comment",
-            "company",
-            "created_when",
-            "last_modified",
-            "created_by",
-            "last_modified_by",
-        )
+        type_ = "acronyms"
         model = Acronym
+        strict = True
+
+    id = fields.Int(dump_only=True)
+    acronym = fields.Str()
+    meaning = fields.Str()
+    comment = fields.Str()
+    company = fields.Str()
+    created_at = fields.DateTime()
+    last_modified_at = fields.DateTime()
+    created_by = fields.Email()
+    last_modified_by = fields.Email()
+
+
+class AcronymsSchema(AcronymSchema):
+    pre_url = fields.Relationship()
+    next_url = fields.Relationship()
+    pass
 
 
 acronym_shema = AcronymSchema()
-acronyms_shema = AcronymSchema(many=True)
+acronyms_shema = AcronymsSchema(many=True)

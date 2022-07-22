@@ -45,17 +45,19 @@ class AcronymsListRessource(Resource):
             acronyms = pagination.items
             if pagination.has_prev:
                 prev_url = "{}?display_per_page={}&page={}".format(
-                    request.base_url, display_per_page, page - 1
+                    request.base_url, display_per_page, pagination.prev_num
                 )
             if pagination.has_next:
                 next_url = "{}?display_per_page={}&page={}".format(
-                    request.base_url, display_per_page, page + 1
+                    request.base_url, display_per_page, pagination.next_num
                 )
         else:
             acronyms = Acronym.query.order_by(Acronym.acronym).all()
-        results = {"acronyms": acronyms_shema.dump(acronyms)}
-        results["next_url"] = next_url
-        results["prev_url"] = prev_url
+        results = acronyms_shema.dump(acronyms)
+        if not hasattr(results, "links"):
+            results["links"] = {}
+        results["links"]["next_url"] = {"href": next_url}
+        results["links"]["prev_url"] = {"href": prev_url}
         return jsonify(results)
 
 

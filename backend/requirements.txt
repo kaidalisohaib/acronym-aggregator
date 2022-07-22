@@ -19,6 +19,7 @@ Jinja2==3.1.2
 Mako==1.2.1
 MarkupSafe==2.1.1
 marshmallow==3.17.0
+marshmallow-jsonapi==0.24.0
 marshmallow-sqlalchemy==0.28.1
 mypy-extensions==0.4.3
 nodeenv==1.7.0
