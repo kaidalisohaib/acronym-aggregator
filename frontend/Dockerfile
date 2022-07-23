@@ -60,7 +60,7 @@ RUN \
 # install ember-cli
 COPY ./package.json /ember-app/
 
-RUN npm install
 RUN npm install -g ember-cli@4.5.0
+RUN npm install
 
 COPY . .

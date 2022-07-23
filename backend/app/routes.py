@@ -1,5 +1,5 @@
 from app import api
-from app.models import Acronym, acronym_shema, acronyms_shema
+from app.models import Acronym, AcronymSchema
 from flask import jsonify, request
 from flask_restful import Resource, abort
 from webargs import fields
@@ -34,30 +34,22 @@ class AcronymsListRessource(Resource):
         """
 
         acronyms = []
-        prev_url = None
-        next_url = None
-        if "display_per_page" in args:
+        metadata = {}
+        if "display_per_page" in args and args["display_per_page"] > -1:
             page = args["page"]
             display_per_page = args["display_per_page"]
-            pagination = Acronym.query.order_by(Acronym.acronym).paginate(
-                page, display_per_page, False
-            )
+            pagination = Acronym.query.paginate(page, display_per_page, False)
             acronyms = pagination.items
-            if pagination.has_prev:
-                prev_url = "{}?display_per_page={}&page={}".format(
-                    request.base_url, display_per_page, pagination.prev_num
-                )
-            if pagination.has_next:
-                next_url = "{}?display_per_page={}&page={}".format(
-                    request.base_url, display_per_page, pagination.next_num
-                )
+            metadata["pagesCount"] = pagination.pages
+            metadata["has_prev"] = pagination.has_prev
+            metadata["has_next"] = pagination.has_next
         else:
-            acronyms = Acronym.query.order_by(Acronym.acronym).all()
-        results = acronyms_shema.dump(acronyms)
-        if not hasattr(results, "links"):
-            results["links"] = {}
-        results["links"]["next_url"] = {"href": next_url}
-        results["links"]["prev_url"] = {"href": prev_url}
+            acronyms = Acronym.query.all()
+
+        results = AcronymSchema(many=True).dump(acronyms)
+        metadata["itemsCount"] = len(acronyms)
+        if metadata:
+            results["meta"] = metadata
         return jsonify(results)
 
 
@@ -66,7 +58,7 @@ class AcronymRessource(Resource):
         acronym = Acronym.query.get(acronym_id)
         if acronym is None:
             abort(http_status_code=404, message="Acronym not found.")
-        return acronym_shema.dump(acronym)
+        return AcronymSchema.dump(acronym)
 
 
 api.add_resource(AcronymRessource, "/api/acronym/<int:acronym_id>")

@@ -1,1 +1,43 @@
-{{yield}}
+<div>
+  <p>display_per_page: {{this.display_per_page}}</p>
+  <p>page: {{this.page}}</p>
+  <table>
+    <thead>
+      <tr>
+        {{#each @columns as |column|}}
+          <th>{{column.name}}</th>
+        {{/each}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each this.acronyms as |acronym|}}
+        <Acronym @columns={{@columns}} @acronym={{acronym}} />
+      {{/each}}
+    </tbody>
+  </table>
+  {{!-- <select onchange={{action (mut this.display_per_page) value='target.value'}}> --}}
+  <p>Items per page</p>
+  <select onchange={{action 'changeDisplayPerPage'}}>
+    <option
+      value={{this.display_per_page}}
+      selected
+      disabled
+      hidden
+    >{{this.display_per_page}}</option>
+    <option value='1'>1</option>
+    <option value='2'>2</option>
+    <option value='3'>3</option>
+    <option value='4'>4</option>
+    <option value='-1'>All</option>
+  </select>
+  <div>
+    <button
+      disabled={{if this.has_prev false true}}
+      onclick={{action 'prev_page'}}
+    >PREV PAGE</button>
+    <button
+      disabled={{if this.has_next false true}}
+      onclick={{action 'next_page'}}
+    >NEXT PAGE</button>
+  </div>
+</div>
