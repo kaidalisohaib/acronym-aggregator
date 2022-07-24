@@ -1,37 +1,11 @@
 # syntax=docker/dockerfile:1
 FROM node:16.16.0
 
-# ember server on port 4200
-# livereload server on port 7020 (changed in v2.17.0 from 49153)
-# test server on port 7357
-EXPOSE 4200 7020 7357
-
-# run ember server on container start
-CMD ["ember", "serve"]
-
 WORKDIR /ember-app
 
-
-# Install watchman build dependencies
 RUN \
     apt-get update -y &&\
     apt-get install -y python-dev
-
-# # install watchman
-# # Note: See the README.md to find out how to increase the
-# # fs.inotify.max_user_watches value so that watchman will
-# # work better with ember projects.
-# RUN \
-#     git clone --branch=v4.9.0 --depth=1 https://github.com/facebook/watchman.git &&\
-#     cd watchman &&\
-#     ./autogen.sh &&\
-#     CXXFLAGS=-Wno-error ./configure &&\
-#     make &&\
-#     make install
-
-# # # install bower
-# RUN \
-#     npm install -g bower@1.8.8
 
 # install chrome for default testem config (as of ember-cli 2.15.0)
 RUN \
@@ -58,9 +32,19 @@ RUN \
     echo 'PS1="\[\\e[0;94m\]${debian_chroot:+($debian_chroot)}\\u@\\h:\\w\\\\$\[\\e[m\] "' >> ~/.bashrc
 
 # install ember-cli
-COPY ./package.json /ember-app/
+RUN npm install -g npm && \
+    npm install -g ember-cli@4.5.0
 
-RUN npm install -g ember-cli@4.5.0
+COPY package.json ./
+
 RUN npm install
 
-COPY . .
+COPY . ./
+
+# run ember server on container start
+ENTRYPOINT ["ember", "serve"]
+
+# ember server on port 4200
+# livereload server on port 7020 (changed in v2.17.0 from 49153)
+# test server on port 7357
+EXPOSE 4200 7020 7357

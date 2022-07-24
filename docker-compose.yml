@@ -2,7 +2,6 @@ version: "3.8"
 
 volumes:
   postgres-data:
-  node_modules:
 
 services:
   postgres:
@@ -32,8 +31,7 @@ services:
       context: ./frontend
     volumes:
       - ./frontend:/ember-app
-      - .bash_history:/root/.bash_history
-      - node_modules:/ember-app/node_modules
+      - /ember-app/node_modules
     tmpfs:
       - /ember-app/tmp
     ports:

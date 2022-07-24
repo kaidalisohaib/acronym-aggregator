@@ -1,43 +1,78 @@
 <div>
   <p>display_per_page: {{this.display_per_page}}</p>
   <p>page: {{this.page}}</p>
+  <div>
+    {{#each this.columns as |column|}}
+      <button
+        {{on 'click' (perform this.changeColumn column.property)}}
+      >{{column.name}} {{column.enabled}}</button>
+    {{/each}}
+  </div>
   <table>
     <thead>
       <tr>
-        {{#each @columns as |column|}}
-          <th>{{column.name}}</th>
+        {{#each this.columns as |column|}}
+          {{#if column.enabled}}
+            <th colspan='1'>{{column.name}}</th>
+          {{/if}}
         {{/each}}
       </tr>
     </thead>
     <tbody>
-      {{#each this.acronyms as |acronym|}}
-        <Acronym @columns={{@columns}} @acronym={{acronym}} />
-      {{/each}}
+      {{#if this.acronyms}}
+        {{#each this.acronyms as |acronym|}}
+          <Acronym @columns={{this.columns}} @acronym={{acronym}} />
+        {{/each}}
+      {{/if}}
     </tbody>
   </table>
-  {{!-- <select onchange={{action (mut this.display_per_page) value='target.value'}}> --}}
-  <p>Items per page</p>
-  <select onchange={{action 'changeDisplayPerPage'}}>
-    <option
-      value={{this.display_per_page}}
-      selected
-      disabled
-      hidden
-    >{{this.display_per_page}}</option>
-    <option value='1'>1</option>
-    <option value='2'>2</option>
-    <option value='3'>3</option>
-    <option value='4'>4</option>
-    <option value='-1'>All</option>
-  </select>
-  <div>
+  <div style='display:flex;'>
+    <p>Items per page</p>
+    <select {{on 'change' (perform this.changeDisplayPerPage)}}>
+      <option
+        value={{this.display_per_page}}
+        selected
+        disabled
+        hidden
+      >{{this.display_per_page}}</option>
+      <option value='15'>15</option>
+      <option value='25'>25</option>
+      <option value='50'>50</option>
+      <option value='-1'>All</option>
+    </select>
+  </div>
+  <div style='display:flex;'>
+    <label for='pages'>Pages:</label>
+    <select {{on 'change' (perform this.changePage)}}>
+      <option
+        value={{this.page}}
+        selected={{if this.page 'true' 'false'}}
+        disabled
+        hidden
+      >{{this.page}}</option>
+      {{#each (range 1 this.pages_count) as |index|}}
+        <option value={{index}}>{{index}}</option>
+      {{/each}}
+    </select>
     <button
       disabled={{if this.has_prev false true}}
-      onclick={{action 'prev_page'}}
-    >PREV PAGE</button>
+      type='button'
+      {{on 'click' (perform this.first_page)}}
+    >&lt;&lt;</button>
+    <button
+      disabled={{if this.has_prev false true}}
+      type='button'
+      {{on 'click' (perform this.prev_page)}}
+    >&lt;</button>
     <button
       disabled={{if this.has_next false true}}
-      onclick={{action 'next_page'}}
-    >NEXT PAGE</button>
+      type='button'
+      {{on 'click' (perform this.next_page)}}
+    >&gt;</button>
+    <button
+      disabled={{if this.has_next false true}}
+      type='button'
+      {{on 'click' (perform this.last_page)}}
+    >&gt;&gt;</button>
   </div>
 </div>

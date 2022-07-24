@@ -1,6 +1,7 @@
 <tr>
   {{#each @columns as |column|}}
-
-    <td>{{get @acronym column.proprety}}</td>
+    {{#if column.enabled}}
+      <td>{{get @acronym column.property}}</td>
+    {{/if}}
   {{/each}}
 </tr>
