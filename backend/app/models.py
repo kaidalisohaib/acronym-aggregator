@@ -10,8 +10,12 @@ class Acronym(db.Model):
     meaning = db.Column(db.String(), nullable=False)
     comment = db.Column(db.String(), nullable=True)
     company = db.Column(db.String(), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
-    last_modified_at = db.Column(db.DateTime, onupdate=datetime.utcnow(), nullable=True)
+    created_at = db.Column(
+        db.DateTime(timezone=True), default=datetime.utcnow(), nullable=False
+    )
+    last_modified_at = db.Column(
+        db.DateTime(timezone=True), onupdate=datetime.utcnow(), nullable=True
+    )
     created_by = db.Column(db.String(), nullable=False)
     last_modified_by = db.Column(db.String(), nullable=True)
 

@@ -2,6 +2,7 @@ import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { task, taskGroup, timeout } from 'ember-concurrency';
+import { action } from '@ember/object';
 
 export default class AcronymsComponent extends Component {
   @service store;
@@ -17,71 +18,148 @@ export default class AcronymsComponent extends Component {
   constructor(...args) {
     super(...args);
     let { columns } = this.args;
+    columns.forEach((column) => {
+      if (!('query' in column)) {
+        column.query = null;
+      }
+    });
     this.columns = columns;
     this.update.perform();
   }
 
+  /**
+   * This function fetchs the data from the backend with all
+   * the parameters needed and is called after each changement.
+   */
   @task({ drop: true })
   *update() {
+    let filter = {};
+    this.columns.forEach((column) => {
+      if (column.query && column.query.trim()) {
+        filter[column.property] = column.query;
+      }
+    });
+
     yield this.store
       .query('acronym', {
         display_per_page: this.display_per_page,
         page: this.page,
+        filter: filter,
       })
       .then((results) => {
         this.has_next = results.meta.has_next;
         this.has_prev = results.meta.has_prev;
-        this.pages_count = results.meta.pagesCount;
+        this.pages_count = results.meta.pages_count;
         this.acronyms = results;
       });
     yield timeout(150);
   }
 
+  /**
+   * Change the number of acronym per page
+   * @param {*} event Event of the select html object so we can get his value
+   */
   @task({ group: 'changes' })
   *changeDisplayPerPage(event) {
+    let last_page = this.page;
+    let last_display_per_page = this.display_per_page;
     this.display_per_page = parseInt(event.target.value);
     this.page = 1;
-    yield this.update.perform();
+    yield this.update.perform().catch(() => {
+      this.page = last_page;
+      this.display_per_page = last_display_per_page;
+    });
   }
 
+  /**
+   * Go to the selected page
+   * @param {*} event Event of the select html object so we can get his value
+   */
   @task({ group: 'changes' })
   *changePage(event) {
+    let last_page = this.page;
     this.page = parseInt(event.target.value);
-    yield this.update.perform();
+    yield this.update.perform().catch(() => (this.page = last_page));
   }
-
+  /**
+   * Go to the next page
+   */
   @task({ group: 'changes' })
   *next_page() {
+    let last_page = this.page;
     this.page += 1;
-    yield this.update.perform();
+    yield this.update.perform().catch(() => (this.page = last_page));
   }
 
+  /**
+   * Go to the previous page
+   */
   @task({ group: 'changes' })
   *prev_page() {
+    let last_page = this.page;
     this.page -= 1;
-    yield this.update.perform();
+    yield this.update.perform().catch(() => (this.page = last_page));
   }
 
+  /**
+   * Go to the first page
+   */
   @task({ group: 'changes' })
   *first_page() {
+    let last_page = this.page;
     this.page = 1;
-    yield this.update.perform();
+    yield this.update.perform().catch(() => (this.page = last_page));
   }
 
+  /**
+   * Go to the last page
+   */
   @task({ group: 'changes' })
   *last_page() {
+    let last_page = this.page;
     this.page = this.pages_count;
+    yield this.update.perform().catch(() => (this.page = last_page));
+  }
+
+  /**
+   * Show/Hide the column of the buttonn pressed
+   * @param {*} columnProperty The column property name to Show/Hide
+   */
+  @task({ group: 'changes' })
+  *toggleColumn(columnProperty) {
+    // let newColumns = this.columns;
+    yield this.columns.forEach((column) => {
+      if (column.property === columnProperty) {
+        column.enabled = !column.enabled;
+        if (!column.enabled) {
+          column.query = null;
+        }
+      }
+    });
+    yield this.changeColumns(this.columns);
+  }
+
+  /**
+   * Remove the text within a query input if the 'X' button was pressed
+   * @param {*} columnProperty The column property name to remove the query
+   */
+  @task({ group: 'changes' })
+  *clearQuery(columnProperty) {
+    yield this.columns.forEach((column) => {
+      if (column.property === columnProperty) {
+        column.query = null;
+      }
+    });
+    yield this.changeColumns(this.columns);
     yield this.update.perform();
   }
 
-  @task({ group: 'changes' })
-  *changeColumn(columnName) {
-    let newColumns = JSON.parse(JSON.stringify(this.columns));
-    yield newColumns.forEach((column) => {
-      if (column.property === columnName) {
-        column.enabled = !column.enabled;
-      }
-    });
-    this.columns = newColumns;
+  /**
+   * This function was made to update all related html attributes and component related to this.columns.
+   * Since emberjs doesn't track array elements, we need to update the whole array pointer to update the template.
+   * @param {*} new_columns New version of the columns array
+   */
+  changeColumns(new_columns) {
+    this.columns = JSON.parse(JSON.stringify(new_columns));
   }
 }

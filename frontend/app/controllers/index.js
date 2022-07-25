@@ -4,6 +4,11 @@ import { tracked } from '@glimmer/tracking';
 export default class IndexController extends Controller {
   columns = [
     {
+      name: 'ID',
+      property: 'id',
+      enabled: true,
+    },
+    {
       name: 'acronym',
       property: 'acronym',
       enabled: true,

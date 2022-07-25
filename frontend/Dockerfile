@@ -35,11 +35,11 @@ RUN \
 RUN npm install -g npm && \
     npm install -g ember-cli@4.5.0
 
-COPY package.json ./
+COPY package.json ./package.json
 
-RUN npm install
+RUN npm install && npm cache clean --force
 
-COPY . ./
+COPY . .
 
 # run ember server on container start
 ENTRYPOINT ["ember", "serve"]

@@ -7,6 +7,6 @@ export default class AcronymModel extends Model {
   @attr('string') company;
   @attr('string') created_by;
   @attr('string') last_modified_by;
-  @attr('date') last_modified_at;
-  @attr('date') created_at;
+  @attr('momentUTC') last_modified_at;
+  @attr('momentUTC') created_at;
 }

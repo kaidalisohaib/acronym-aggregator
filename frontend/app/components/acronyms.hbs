@@ -1,19 +1,50 @@
 <div>
   <p>display_per_page: {{this.display_per_page}}</p>
   <p>page: {{this.page}}</p>
-  <div>
-    {{#each this.columns as |column|}}
-      <button
-        {{on 'click' (perform this.changeColumn column.property)}}
-      >{{column.name}} {{column.enabled}}</button>
-    {{/each}}
+  <div id='checkboxes'>
+    <ul>
+      {{#each this.columns as |column|}}
+        <li>
+          <button
+            type='button'
+            {{on 'click' (perform this.toggleColumn column.property)}}
+          >
+            <input type='checkbox' checked={{if column.enabled true false}} />
+            {{column.name}}
+          </button>
+        </li>
+      {{/each}}
+    </ul>
   </div>
-  <table>
+  <button {{on 'click' (perform this.update)}}>Search</button>
+  {{! Actual table being rendered }}
+  <table style='box-sizing: border-box; width: 100%;'>
     <thead>
+      {{! ALL THE ENABLED HEADERS }}
       <tr>
         {{#each this.columns as |column|}}
           {{#if column.enabled}}
-            <th colspan='1'>{{column.name}}</th>
+            <th>{{column.name}}</th>
+          {{/if}}
+        {{/each}}
+      </tr>
+      {{! ALL QUERY OF THE HEADERS }}
+      <tr>
+        {{#each this.columns as |column|}}
+          {{#if column.enabled}}
+            <th>
+              <div style='display: flex;'>
+                <Input
+                  @type='text'
+                  style='width: calc(100% - 30px);'
+                  @value={{column.query}}
+                />
+                <button
+                  style='width: 30px;'
+                  {{on 'click' (perform this.clearQuery column.property)}}
+                >X</button>
+              </div>
+            </th>
           {{/if}}
         {{/each}}
       </tr>

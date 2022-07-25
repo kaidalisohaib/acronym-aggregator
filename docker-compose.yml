@@ -2,6 +2,7 @@ version: "3.8"
 
 volumes:
   postgres-data:
+  exclude:
 
 services:
   postgres:
@@ -29,9 +30,10 @@ services:
   frontend:
     build:
       context: ./frontend
+    command: bash -c "rm -rf /ember-app/node_modules/*"
     volumes:
       - ./frontend:/ember-app
-      - /ember-app/node_modules
+      - exclude:/ember-app/node_modules
     tmpfs:
       - /ember-app/tmp
     ports:
