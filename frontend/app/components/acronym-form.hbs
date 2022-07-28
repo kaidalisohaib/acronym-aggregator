@@ -1,0 +1,189 @@
+<div>
+  <form onsubmit='event.preventDefault();'>
+    {{#if @read-only}}
+      <div class='form-group'>
+        <label for=''>ID</label>
+        <input
+          type='number'
+          class='form-control'
+          readonly
+          value={{@acronym.id}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Acronym</label>
+        <input
+          type='text'
+          class='form-control'
+          readonly
+          value={{@acronym.acronym}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Meaning</label>
+        <input
+          type='text'
+          class='form-control'
+          readonly
+          value={{@acronym.meaning}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Comment</label>
+        <textarea
+          type='text'
+          class='form-control'
+          rows='4'
+          readonly
+          value={{@acronym.comment}}
+        ></textarea>
+      </div>
+      <div class='form-group'>
+        <label for=''>Company</label>
+        <input
+          type='text'
+          class='form-control'
+          readonly
+          value={{@acronym.company}}
+        />
+      </div>
+      {{!  }}
+      {{!  }}
+      {{!  }}
+      {{!  }}
+      <div class='form-group'>
+        <label for=''>Created by</label>
+        <input
+          type='text'
+          class='form-control'
+          readonly
+          value={{@acronym.created_by}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Created at (UTC)</label>
+        <input
+          type='datetime-local'
+          class='form-control'
+          readonly
+          value={{@acronym.created_at}}
+        />
+      </div>
+      <p>{{@acronym.created_at}}</p>
+      <div class='form-group'>
+        <label for=''>Last modified by</label>
+        <input
+          type='text'
+          class='form-control'
+          readonly
+          value={{@acronym.last_modified_by}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Last modified at (UTC)</label>
+        <input
+          type='datetime-local'
+          class='form-control'
+          readonly
+          value={{@acronym.last_modified_at}}
+        />
+      </div>
+    {{else}}
+      <div class='form-group'>
+        <label for=''>ID</label>
+        <input
+          type='number'
+          class='form-control'
+          disabled
+          value={{@acronym.id}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Acronym</label>
+        <input
+          type='text'
+          class='form-control'
+          value={{this.acronym}}
+          required
+          onchange={{action (mut this.acronym) value='target.value'}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Meaning</label>
+        <input
+          type='text'
+          class='form-control'
+          value={{this.meaning}}
+          required
+          onchange={{action (mut this.meaning) value='target.value'}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Comment</label>
+        <textarea
+          type='text'
+          class='form-control'
+          rows='4'
+          value={{this.comment}}
+          onchange={{action (mut this.comment) value='target.value'}}
+        ></textarea>
+      </div>
+      <div class='form-group'>
+        <label for=''>Company</label>
+        <input
+          type='text'
+          class='form-control'
+          value={{this.company}}
+          required
+          onchange={{action (mut this.company) value='target.value'}}
+        />
+      </div>
+      {{!  }}
+      {{!  }}
+      {{!  }}
+      {{!  }}
+      <div class='form-group'>
+        <label for=''>Created by</label>
+        <input
+          type='text'
+          class='form-control'
+          disabled
+          value={{@acronym.created_by}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Created at (UTC)</label>
+        <input
+          type='datetime-local'
+          class='form-control'
+          disabled
+          value={{@acronym.created_at}}
+        />
+      </div>
+      <p>{{@acronym.created_at}}</p>
+      <div class='form-group'>
+        <label for=''>Last modified by</label>
+        <input
+          type='text'
+          class='form-control'
+          disabled
+          value={{@acronym.last_modified_by}}
+        />
+      </div>
+      <div class='form-group'>
+        <label for=''>Last modified at (UTC)</label>
+        <input
+          type='datetime-local'
+          class='form-control'
+          disabled
+          value={{@acronym.last_modified_at}}
+        />
+      </div>
+      <button
+        class='btn btn-primary'
+        type='submit'
+        {{on 'click' this.submitChanges}}
+      >Submit</button>
+    {{/if}}
+  </form>
+</div>

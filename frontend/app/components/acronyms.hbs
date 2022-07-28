@@ -1,111 +1,177 @@
 <div class='acronyms-div'>
   <p>display_per_page: {{this.display_per_page}}</p>
   <p>page: {{this.page}}</p>
-  {{! List of checkbox to show/hide the columns }}
-  <div>
-    <ul>
-      {{#each this.columns as |column|}}
-        <li>
-          <button
-            type='button'
-            {{on 'click' (perform this.toggleColumn column.property)}}
-          >
-            <input type='checkbox' checked={{if column.enabled true false}} />
-            {{column.name}}
-          </button>
-        </li>
-      {{/each}}
-    </ul>
+  <p>update state: {{this.update.state}}</p>
+  <div class='d-flex justify-content-between'>
+    <button
+      class='btn btn-primary'
+      type='button'
+      {{on 'click' (perform this.searchQuery)}}
+    >Search</button>
+    {{! List of checkbox to show/hide the columns }}
+    <div class='dropdown'>
+      <button
+        class='btn btn-secondary dropdown-toggle'
+        type='button'
+        data-bs-toggle='dropdown'
+        aria-expanded='false'
+      >
+        Show/Hide Columns
+      </button>
+      <ul class='dropdown-menu' {{on 'click' this.handleChecklistMenu}}>
+        {{#each this.columns as |column|}}
+          <li>
+            <button
+              class='dropdown-item'
+              type='button'
+              {{on 'click' (perform this.toggleColumn column)}}
+            >
+              <input type='checkbox' checked={{if column.enabled true false}} />
+              {{column.name}}
+            </button>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
   </div>
-  <button {{on 'click' (perform this.update)}}>Search</button>
   {{! Actual table being rendered }}
-  <table class='acronyms-table' style='box-sizing: border-box; width: 100%;'>
-    <thead>
-      {{! ALL THE ENABLED HEADERS }}
-      <tr>
-        {{#each this.columns as |column|}}
-          {{#if column.enabled}}
-            <th>{{column.name}}</th>
-          {{/if}}
-        {{/each}}
-      </tr>
-      {{! ALL QUERY OF THE HEADERS }}
-      <tr>
-        {{#each this.columns as |column|}}
-          {{#if column.enabled}}
-            <th>
-              <div style='display: flex;'>
-                <Input
-                  @type='text'
-                  style='width: calc(100% - 30px);'
-                  @value={{column.query}}
-                />
-                <button
-                  style='width: 30px;'
-                  disabled={{if column.query false true}}
-                  {{on 'click' (perform this.clearQuery column.property)}}
-                >X</button>
-              </div>
-            </th>
-          {{/if}}
-        {{/each}}
-      </tr>
-    </thead>
-    <tbody>
-      {{#if this.acronyms}}
-        {{#each this.acronyms as |acronym|}}
-          <Acronym @columns={{this.columns}} @acronym={{acronym}} />
-        {{/each}}
-      {{/if}}
-    </tbody>
-  </table>
-  <div style='display:flex;'>
-    <p>Items per page</p>
-    <select {{on 'change' (perform this.changeDisplayPerPage)}}>
-      <option
-        value={{this.display_per_page}}
-        selected
-        disabled
-        hidden
-      >{{this.display_per_page}}</option>
-      <option value='15'>15</option>
-      <option value='25'>25</option>
-      <option value='50'>50</option>
-      <option value='-1'>All</option>
-    </select>
+  <div class='table-responsive'>
+    <table
+      class='acronyms-table table'
+      style='box-sizing: border-box; width: 100%;'
+    >
+      <thead>
+        {{! ALL THE ENABLED HEADERS }}
+        <tr>
+          {{#each this.columns as |column|}}
+            {{#if column.enabled}}
+              <th
+                role='button'
+                scope='col'
+                {{on 'click' (perform this.changeSorting column)}}
+              >{{column.name}}
+                {{if
+                  (eq column.property this.sorting_column)
+                  (if this.sorting_ascending '^' '˅')
+                  ''
+                }}
+              </th>
+            {{/if}}
+          {{/each}}
+        </tr>
+        {{! ALL QUERY OF THE HEADERS }}
+        <tr>
+          {{#each this.columns as |column|}}
+            {{#if column.enabled}}
+              <th scope='col'>
+                <div style='display: flex; input-group'>
+                  <Input
+                    @type='text'
+                    style='width: calc(100% - 30px);'
+                    @value={{column.query}}
+                    class='form-control'
+                  />
+                  <button
+                    style='width: 30px;'
+                    disabled={{if column.query false true}}
+                    class='btn btn-outline-primary'
+                    type='button'
+                    {{on 'click' (perform this.clearQuery column)}}
+                  >X</button>
+                </div>
+              </th>
+            {{/if}}
+          {{/each}}
+        </tr>
+      </thead>
+
+      <tbody>
+        {{#if this.acronyms}}
+          {{#each this.acronyms as |acronym|}}
+            <Acronym @columns={{this.columns}} @acronym={{acronym}} />
+          {{/each}}
+        {{/if}}
+      </tbody>
+    </table>
   </div>
-  <div style='display:flex;'>
-    <label for='pages'>Pages:</label>
-    <select {{on 'change' (perform this.changePage)}}>
-      <option
-        value={{this.page}}
-        selected={{if this.page 'true' 'false'}}
-        disabled
-        hidden
-      >{{this.page}}</option>
-      {{#each (range 1 this.pages_count) as |index|}}
-        <option value={{index}}>{{index}}</option>
-      {{/each}}
-    </select>
-    <button
-      disabled={{if this.has_prev false true}}
-      type='button'
-      {{on 'click' (perform this.first_page)}}
-    >&lt;&lt;</button>
-    <button
-      disabled={{if this.has_prev false true}}
-      type='button'
-      {{on 'click' (perform this.prev_page)}}
-    >&lt;</button>
-    <button
-      disabled={{if this.has_next false true}}
-      type='button'
-      {{on 'click' (perform this.next_page)}}
-    >&gt;</button>
-    <button
-      disabled={{if this.has_next false true}}
-      type='button'
-      {{on 'click' (perform this.last_page)}}
-    >&gt;&gt;</button>
+  {{!-- {{#if this.update.isRunning}} --}}
+  <div class='d-flex justify-content-center'>
+    <div
+      class='spinner-border text-primary'
+      style='width: 3rem; height: 3rem; visibility:{{if
+        this.update.isRunning
+        "visible;"
+        "hidden"
+      }};'
+      role='status'
+    >
+      {{! <span class='sr-only'>Loading...</span> }}
+    </div>
+  </div>
+  {{!-- {{/if}} --}}
+  <div style='display: flex;justify-content: space-between;'>
+    <div
+      class='input-group'
+      style='width: auto;position: relative; right: 0px;'
+    >
+      <label class='input-group-text'>Rows:</label>
+      <select
+        class='form-control'
+        {{on 'change' (perform this.changeDisplayPerPage)}}
+      >
+        <option
+          value={{this.display_per_page}}
+          selected
+          disabled
+          hidden
+        >{{this.display_per_page}}</option>
+        <option value='10'>10</option>
+        <option value='25'>25</option>
+        <option value='50'>50</option>
+        {{! <option value='-1'>All</option> }}
+      </select>
+    </div>
+    <div style='display: flex;'>
+      <div class='input-group'>
+        <label class='input-group-text'>Page:</label>
+        <select class='form-control' {{on 'change' (perform this.changePage)}}>
+          <option
+            value={{this.page}}
+            selected={{if this.page 'true' 'false'}}
+            disabled
+            hidden
+          >{{this.page}}</option>
+          {{#each (range 1 this.pages_count) as |index|}}
+            <option value={{index}}>{{index}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class='btn-group'>
+        <button
+          class='btn btn-secondary'
+          disabled={{if this.has_prev false true}}
+          type='button'
+          {{on 'click' (perform this.first_page)}}
+        >&lt;&lt;</button>
+        <button
+          class='btn btn-secondary'
+          disabled={{if this.has_prev false true}}
+          type='button'
+          {{on 'click' (perform this.prev_page)}}
+        >&lt;</button>
+        <button
+          class='btn btn-secondary'
+          disabled={{if this.has_next false true}}
+          type='button'
+          {{on 'click' (perform this.next_page)}}
+        >&gt;</button>
+        <button
+          class='btn btn-secondary'
+          disabled={{if this.has_next false true}}
+          type='button'
+          {{on 'click' (perform this.last_page)}}
+        >&gt;&gt;</button>
+      </div>
+    </div>
   </div>
 </div>

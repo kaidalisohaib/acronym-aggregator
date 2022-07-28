@@ -3,7 +3,6 @@ import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { task, taskGroup, timeout } from 'ember-concurrency';
 import { action } from '@ember/object';
-
 export default class AcronymsComponent extends Component {
   @service store;
   @tracked display_per_page = 3;
@@ -13,6 +12,8 @@ export default class AcronymsComponent extends Component {
   @tracked has_next = true;
   @tracked has_prev = false;
   @tracked pages_count = 1;
+  @tracked sorting_column = null;
+  @tracked sorting_ascending = null;
   @taskGroup({ drop: true }) changes;
 
   constructor(...args) {
@@ -33,18 +34,27 @@ export default class AcronymsComponent extends Component {
    */
   @task({ drop: true })
   *update() {
+    // Preparing the optional queries
     let filter = {};
     this.columns.forEach((column) => {
       if (column.query && column.query.trim()) {
         filter[column.property] = column.query;
       }
     });
+    let sorting = {};
+    if (this.sorting_column) {
+      sorting['column'] = this.sorting_column;
+    }
+    if (this.sorting_ascending !== null) {
+      sorting['ascending'] = this.sorting_ascending;
+    }
 
     yield this.store
       .query('acronym', {
         display_per_page: this.display_per_page,
         page: this.page,
         filter: filter,
+        sorting: sorting,
       })
       .then((results) => {
         this.has_next = results.meta.has_next;
@@ -126,16 +136,11 @@ export default class AcronymsComponent extends Component {
    * @param {*} columnProperty The column property name to Show/Hide
    */
   @task({ group: 'changes' })
-  *toggleColumn(columnProperty) {
-    // let newColumns = this.columns;
-    yield this.columns.forEach((column) => {
-      if (column.property === columnProperty) {
-        column.enabled = !column.enabled;
-        if (!column.enabled) {
-          column.query = null;
-        }
-      }
-    });
+  *toggleColumn(column) {
+    column.enabled = !column.enabled;
+    if (!column.enabled) {
+      column.query = null;
+    }
     yield this.changeColumns(this.columns);
   }
 
@@ -144,13 +149,43 @@ export default class AcronymsComponent extends Component {
    * @param {*} columnProperty The column property name to remove the query
    */
   @task({ group: 'changes' })
-  *clearQuery(columnProperty) {
-    yield this.columns.forEach((column) => {
-      if (column.property === columnProperty) {
-        column.query = null;
+  *clearQuery(column) {
+    column.query = null;
+    this.changeColumns(this.columns);
+    this.page = 1;
+    yield this.update.perform();
+  }
+
+  @task({ group: 'changes' })
+  *searchQuery() {
+    let queryEmpty = true;
+    for (const column of this.columns) {
+      if (column.query && column.query.trim()) {
+        queryEmpty = false;
+        break;
       }
-    });
-    yield this.changeColumns(this.columns);
+    }
+    if (!queryEmpty) {
+      this.page = 1;
+      yield this.update.perform();
+    }
+  }
+
+  @task({ group: 'changes' })
+  *changeSorting(column) {
+    if (this.sorting_column === column.property) {
+      if (this.sorting_ascending) {
+        this.sorting_ascending = false;
+      } else {
+        this.sorting_column = null;
+        this.sorting_ascending = null;
+      }
+    } else {
+      this.sorting_column = column.property;
+      this.sorting_ascending = true;
+    }
+    console.log(column);
+    console.log(this.sorting_column + '       ' + this.sorting_ascending);
     yield this.update.perform();
   }
 
@@ -161,5 +196,10 @@ export default class AcronymsComponent extends Component {
    */
   changeColumns(new_columns) {
     this.columns = JSON.parse(JSON.stringify(new_columns));
+  }
+
+  @action
+  handleChecklistMenu(event) {
+    event.stopPropagation();
   }
 }

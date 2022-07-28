@@ -9,4 +9,7 @@ export default class Router extends EmberRouter {
 Router.map(function () {
   this.route('index', { path: '/' });
   this.route('index');
+  this.route('acronym', { path: '/acronyms/:acronym_id' });
+  this.route('edit', { path: '/edit/:acronym_id' });
+  this.route('create');
 });

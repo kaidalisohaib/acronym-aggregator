@@ -1,9 +1,9 @@
 from app import api
 from app.models import Acronym, AcronymSchema
-from flask import jsonify, request
-from flask_restful import Resource, abort, reqparse
+from flask import jsonify
+from flask_restful import Resource, abort
 from flask_sqlalchemy import BaseQuery
-from sqlalchemy import String, cast
+from sqlalchemy import String, cast, inspect
 from webargs import fields, validate
 from webargs.flaskparser import use_args
 
@@ -17,6 +17,11 @@ class AcronymsListRessource(Resource):
             "page": fields.Int(
                 missing=1, validate=[validate.Range(min=1)], required=False
             ),
+            "sorting[column]": fields.Str(
+                validate=[validate.OneOf(choices=Acronym.__table__.columns.keys())],
+                required=False,
+            ),
+            "sorting[ascending]": fields.Bool(missing=True, required=False),
             "filter[id]": fields.Int(validate=[validate.Range(min=1)], required=False),
             "filter[acronym]": fields.Str(
                 validate=[validate.Length(min=1)], required=False
@@ -80,7 +85,7 @@ class AcronymsListRessource(Resource):
         """
         acronyms = []
         metadata = {}
-        query_object = build_acronyms_filter_query(args)
+        query_object = build_acronyms_filter_sort_query(args)
         if "display_per_page" in args:
             page = args["page"]
             display_per_page = args["display_per_page"]
@@ -104,15 +109,15 @@ class AcronymRessource(Resource):
         acronym = Acronym.query.get(acronym_id)
         if acronym is None:
             abort(http_status_code=404, message="Acronym not found.")
-        return AcronymSchema.dump(acronym)
+        return jsonify(AcronymSchema().dump(acronym))
 
 
-api.add_resource(AcronymRessource, "/api/acronym/<int:acronym_id>")
+api.add_resource(AcronymRessource, "/api/acronyms/<int:acronym_id>")
 api.add_resource(AcronymsListRessource, "/api/acronyms")
 
 
-def build_acronyms_filter_query(args) -> BaseQuery:
-    """Build a query with the filters given
+def build_acronyms_filter_sort_query(args) -> BaseQuery:
+    """Build a query with the filters given and the column to sort
 
     Keyword arguments:
     argument -- Parameters of the api request
@@ -123,36 +128,24 @@ def build_acronyms_filter_query(args) -> BaseQuery:
     """
 
     query_object = Acronym.query
-    if "filter[id]" in args:
-        query_object = query_object.filter(
-            cast(Acronym.id, String).contains(str(args["filter[id]"]))
-        )
-    if "filter[acronym]" in args:
-        query_object = query_object.filter(
-            cast(Acronym.acronym, String).contains(str(args["filter[acronym]"]))
-        )
-    if "filter[meaning]" in args:
-        query_object = query_object.filter(
-            cast(Acronym.meaning, String).contains(str(args["filter[meaning]"]))
-        )
-    if "filter[created_at]" in args:
-        query_object = query_object.filter(
-            cast(Acronym.created_at, String).contains(str(args["filter[created_at]"]))
-        )
-    if "filter[last_modified_at]" in args:
-        query_object = query_object.filter(
-            cast(Acronym.last_modified_at, String).contains(
-                str(args["filter[last_modified_at]"])
+    for key, value in args.items():
+        if key.startswith("filter"):
+            # 7 is the length of the word "filter" + 1
+            column_name = key[7:-1]
+            column = getattr(Acronym, column_name)
+            query_object = query_object.filter(
+                cast(column, String).contains(str(value))
             )
-        )
-    if "filter[created_by]" in args:
-        query_object = query_object.filter(
-            cast(Acronym.created_by, String).contains(str(args["filter[created_by]"]))
-        )
-    if "filter[last_modified_by]" in args:
-        query_object = query_object.filter(
-            cast(Acronym.last_modified_by, String).contains(
-                str(args["filter[last_modified_by]"])
+    if "sorting[column]" in args:
+        if args["sorting[ascending]"]:
+            query_object = query_object.order_by(
+                getattr(Acronym, args["sorting[column]"]).asc(), Acronym.id
             )
-        )
+        else:
+            query_object = query_object.order_by(
+                getattr(Acronym, args["sorting[column]"]).desc(), Acronym.id
+            )
+    else:
+        query_object = query_object.order_by(Acronym.id)
+
     return query_object

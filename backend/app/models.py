@@ -28,7 +28,7 @@ class Acronym(db.Model):
         self.created_by = user_email
 
     def __repr__(self) -> str:
-        return "<Acronym id:{} acronym:{}>".format(self.id, self.acronym)
+        return "<Acronym id: {} acronym: {}>".format(self.id, self.acronym)
 
 
 class AcronymSchema(Schema):
