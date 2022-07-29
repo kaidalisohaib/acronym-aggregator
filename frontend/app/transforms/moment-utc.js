@@ -8,6 +8,8 @@ export default class MomentUTCTransform extends Transform {
   }
 
   serialize(deserialized) {
-    return deserialized ? moment.utc(deserialized).format() : null;
+    return deserialized
+      ? moment.utc(deserialized).format('YYYY-MM-DDTHH:mm:ss.SSS')
+      : null;
   }
 }

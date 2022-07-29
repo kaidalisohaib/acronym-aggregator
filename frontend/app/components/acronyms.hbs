@@ -18,12 +18,13 @@
       >
         Show/Hide Columns
       </button>
-      <ul class='dropdown-menu' {{on 'click' this.handleChecklistMenu}}>
+      <ul class='dropdown-menu' onclick='event.stopPropagation()'>
         {{#each this.columns as |column|}}
           <li>
             <button
               class='dropdown-item'
               type='button'
+              disabled={{if column.always_show true false}}
               {{on 'click' (perform this.toggleColumn column)}}
             >
               <input type='checkbox' checked={{if column.enabled true false}} />
@@ -84,7 +85,6 @@
           {{/each}}
         </tr>
       </thead>
-
       <tbody>
         {{#if this.acronyms}}
           {{#each this.acronyms as |acronym|}}
@@ -94,7 +94,6 @@
       </tbody>
     </table>
   </div>
-  {{!-- {{#if this.update.isRunning}} --}}
   <div class='d-flex justify-content-center'>
     <div
       class='spinner-border text-primary'
@@ -105,10 +104,8 @@
       }};'
       role='status'
     >
-      {{! <span class='sr-only'>Loading...</span> }}
     </div>
   </div>
-  {{!-- {{/if}} --}}
   <div style='display: flex;justify-content: space-between;'>
     <div
       class='input-group'

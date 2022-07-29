@@ -1,44 +1,42 @@
 import Component from '@glimmer/component';
-import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
+import { task } from 'ember-concurrency';
+import { service } from '@ember/service';
 
 export default class AcronymFormComponent extends Component {
+  @service router;
   @tracked acronym = this.args.acronym.acronym;
   @tracked meaning = this.args.acronym.meaning;
   @tracked comment = this.args.acronym.comment;
   @tracked company = this.args.acronym.company;
+  @tracked errors = [];
 
-  @action
-  submitChanges() {
-    console.log(this.acronym);
-    console.log(this.meaning);
-    console.log(this.comment);
-    console.log(this.company);
-    let oneAttributeIsContainsOnlySpace = false;
-    if (!this.acronym.trim()) {
-      this.acronym = '';
-      oneAttributeIsContainsOnlySpace = true;
-    }
-    if (!this.meaning.trim()) {
-      this.meaning = '';
-      oneAttributeIsContainsOnlySpace = true;
-    }
-    if (!this.company.trim()) {
-      this.company = '';
-      oneAttributeIsContainsOnlySpace = true;
-    }
-    if (oneAttributeIsContainsOnlySpace) {
+  @task
+  *submitChanges() {
+    this.acronym = this.acronym ? this.acronym.trim() : '';
+    this.meaning = this.meaning ? this.meaning.trim() : '';
+    this.comment = this.comment ? this.comment.trim() : '';
+    this.company = this.company ? this.company.trim() : '';
+
+    if (!this.acronym || !this.meaning || !this.company) {
       return;
     }
+
     this.args.acronym.acronym = this.acronym;
     this.args.acronym.meaning = this.meaning;
     this.args.acronym.comment = this.comment;
     this.args.acronym.company = this.company;
-    console.log(this.args.acronym.hasDirtyAttributes);
-    console.log(this.args.acronym.changedAttributes());
-    console.log('======================================');
     if (this.args.acronym.hasDirtyAttributes) {
-      this.args.acronym.save();
+      yield this.args.acronym
+        .save()
+        .then((new_acronym) => {
+          this.router.transitionTo('acronym', new_acronym);
+        })
+        .catch((error) => {
+          console.log('Error: ', error);
+          this.errors = error.errors;
+        });
+      console.log(this.args.acronym.errors);
     }
   }
 }

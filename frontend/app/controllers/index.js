@@ -6,6 +6,7 @@ export default class IndexController extends Controller {
       name: 'ID',
       property: 'id',
       enabled: true,
+      always_show: true,
     },
     {
       name: 'acronym',

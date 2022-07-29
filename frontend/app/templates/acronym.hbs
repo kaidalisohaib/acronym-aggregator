@@ -1,4 +1,11 @@
 {{page-title 'Acronym'}}
+<LinkTo
+  @route='edit'
+  @model={{@model}}
+  class='btn btn-success'
+  role='button'
+>Edit</LinkTo>
+
 <div style='width: 75%;padding: 5%;'>
   <AcronymForm @acronym={{@model}} @read-only={{true}} />
 </div>

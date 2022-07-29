@@ -1,7 +1,17 @@
 <tr class='acronym-row' scope='row'>
   {{#each @columns as |column|}}
     {{#if column.enabled}}
-      <td>{{get @acronym column.property}}</td>
+      <td>
+        {{#if (eq column.property 'id')}}
+          <LinkTo @route='acronym' @model={{@acronym}}>{{get
+              @acronym
+              column.property
+            }}</LinkTo>
+        {{else}}
+          {{get @acronym column.property}}
+        {{/if}}
+
+      </td>
     {{/if}}
   {{/each}}
 </tr>

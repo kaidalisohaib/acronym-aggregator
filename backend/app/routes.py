@@ -1,9 +1,13 @@
-from app import api
+from http.client import BAD_REQUEST, CONFLICT
+
+import psycopg2
+from app import api, db
 from app.models import Acronym, AcronymSchema
-from flask import jsonify
+from flask import jsonify, request
 from flask_restful import Resource, abort
 from flask_sqlalchemy import BaseQuery
-from sqlalchemy import String, cast, inspect
+from sqlalchemy import String, cast
+from sqlalchemy.exc import IntegrityError
 from webargs import fields, validate
 from webargs.flaskparser import use_args
 
@@ -12,40 +16,40 @@ class AcronymsListRessource(Resource):
     @use_args(
         {
             "display_per_page": fields.Int(
-                validate=[validate.Range(min=1)], required=False
+                validate=validate.Range(min=1), required=False
             ),
             "page": fields.Int(
-                missing=1, validate=[validate.Range(min=1)], required=False
+                missing=1, validate=validate.Range(min=1), required=False
             ),
             "sorting[column]": fields.Str(
-                validate=[validate.OneOf(choices=Acronym.__table__.columns.keys())],
+                validate=validate.OneOf(choices=Acronym.__table__.columns.keys()),
                 required=False,
             ),
             "sorting[ascending]": fields.Bool(missing=True, required=False),
-            "filter[id]": fields.Int(validate=[validate.Range(min=1)], required=False),
+            "filter[id]": fields.Int(validate=validate.Range(min=1), required=False),
             "filter[acronym]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
             "filter[meaning]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
             "filter[comment]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
             "filter[company]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
             "filter[created_at]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
             "filter[last_modified_at]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
             "filter[created_by]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
             "filter[updated_by]": fields.Str(
-                validate=[validate.Length(min=1)], required=False
+                validate=validate.Length(min=1), required=False
             ),
         },
         location="query",
@@ -103,6 +107,38 @@ class AcronymsListRessource(Resource):
             results["meta"] = metadata
         return jsonify(results)
 
+    def post(self):
+        errors = AcronymSchema().validate(request.json)
+        if errors:
+            abort(BAD_REQUEST, errors=errors["errors"])
+
+        attributes = request.json["data"]["attributes"]
+        new_acronym = Acronym(
+            attributes["acronym"],
+            attributes["meaning"],
+            attributes["comment"],
+            attributes["company"],
+            "email@email.com",
+        )
+        db.session.add(new_acronym)
+        try:
+            db.session.commit()
+            return jsonify(AcronymSchema().dump(new_acronym))
+        except IntegrityError as err:
+            db.session.rollback()
+            match err.orig.pgcode:
+                case psycopg2.errorcodes.UNIQUE_VIOLATION:
+                    abort(
+                        CONFLICT,
+                        errors=[
+                            {
+                                "status": CONFLICT,
+                                "detail": "Acronym with the same details \
+                                    already exist in the database.",
+                            }
+                        ],
+                    )
+
 
 class AcronymRessource(Resource):
     def get(self, acronym_id):
@@ -110,6 +146,40 @@ class AcronymRessource(Resource):
         if acronym is None:
             abort(http_status_code=404, message="Acronym not found.")
         return jsonify(AcronymSchema().dump(acronym))
+
+    def patch(self, acronym_id):
+        request.json["data"].pop("id")
+
+        errors = AcronymSchema().validate(request.json)
+        if errors:
+            abort(BAD_REQUEST, errors=errors["errors"])
+
+        attributes = request.json["data"]["attributes"]
+
+        acronym = Acronym.query.get(acronym_id)
+        acronym.acronym = attributes["acronym"]
+        acronym.meaning = attributes["meaning"]
+        acronym.comment = attributes["comment"]
+        acronym.company = attributes["company"]
+        acronym.last_modified_by = "email@email.com"
+
+        try:
+            db.session.commit()
+            return jsonify(AcronymSchema().dump(acronym))
+        except IntegrityError as err:
+            db.session.rollback()
+            match err.orig.pgcode:
+                case psycopg2.errorcodes.UNIQUE_VIOLATION:
+                    abort(
+                        CONFLICT,
+                        errors=[
+                            {
+                                "status": CONFLICT,
+                                "detail": "Acronym with the same details\
+                                    already exist in the database.",
+                            }
+                        ],
+                    )
 
 
 api.add_resource(AcronymRessource, "/api/acronyms/<int:acronym_id>")
@@ -128,6 +198,7 @@ def build_acronyms_filter_sort_query(args) -> BaseQuery:
     """
 
     query_object = Acronym.query
+    # Adding filters to the query
     for key, value in args.items():
         if key.startswith("filter"):
             # 7 is the length of the word "filter" + 1
@@ -136,6 +207,7 @@ def build_acronyms_filter_sort_query(args) -> BaseQuery:
             query_object = query_object.filter(
                 cast(column, String).contains(str(value))
             )
+    # Adding the sorting to the query
     if "sorting[column]" in args:
         if args["sorting[ascending]"]:
             query_object = query_object.order_by(

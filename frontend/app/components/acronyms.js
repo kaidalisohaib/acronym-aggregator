@@ -2,7 +2,6 @@ import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { task, taskGroup, timeout } from 'ember-concurrency';
-import { action } from '@ember/object';
 export default class AcronymsComponent extends Component {
   @service store;
   @tracked display_per_page = 3;
@@ -196,10 +195,5 @@ export default class AcronymsComponent extends Component {
    */
   changeColumns(new_columns) {
     this.columns = JSON.parse(JSON.stringify(new_columns));
-  }
-
-  @action
-  handleChecklistMenu(event) {
-    event.stopPropagation();
   }
 }

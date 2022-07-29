@@ -30,7 +30,6 @@ services:
   frontend:
     build:
       context: ./frontend
-    command: bash -c "rm -rf /ember-app/node_modules/*"
     volumes:
       - ./frontend:/ember-app
       - exclude:/ember-app/node_modules
