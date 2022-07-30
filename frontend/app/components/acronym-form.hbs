@@ -1,195 +1,207 @@
-<div>
+<div class='acronym-form'>
+  {{#unless @readOnly}}
+    {{#each this.errors as |error|}}
+      <div class='alert alert-warning' role='alert'>{{error.detail}}</div>
+    {{/each}}
+  {{/unless}}
   <form onsubmit='event.preventDefault();'>
-    {{#if @read-only}}
-      <div class='form-group'>
-        <label for=''>ID</label>
-        <input
-          type='number'
-          class='form-control'
-          readonly
-          value={{@acronym.id}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Acronym</label>
-        <input
-          type='text'
-          class='form-control'
-          readonly
-          value={{@acronym.acronym}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Meaning</label>
-        <input
-          type='text'
-          class='form-control'
-          readonly
-          value={{@acronym.meaning}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Comment</label>
-        <textarea
-          type='text'
-          class='form-control'
-          rows='4'
-          readonly
-          value={{@acronym.comment}}
-        ></textarea>
-      </div>
-      <div class='form-group'>
-        <label for=''>Company</label>
-        <input
-          type='text'
-          class='form-control'
-          readonly
-          value={{@acronym.company}}
-        />
-      </div>
-      {{!  }}
-      {{!  }}
-      {{!  }}
-      {{!  }}
-      <div class='form-group'>
-        <label for=''>Created by</label>
-        <input
-          type='text'
-          class='form-control'
-          readonly
-          value={{@acronym.created_by}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Created at (UTC)</label>
-        <input
-          type='datetime-local'
-          class='form-control'
-          readonly
-          value={{@acronym.created_at}}
-        />
-      </div>
-      <p>{{@acronym.created_at}}</p>
-      <div class='form-group'>
-        <label for=''>Last modified by</label>
-        <input
-          type='text'
-          class='form-control'
-          readonly
-          value={{@acronym.last_modified_by}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Last modified at (UTC)</label>
-        <input
-          type='datetime-local'
-          class='form-control'
-          readonly
-          value={{@acronym.last_modified_at}}
-        />
-      </div>
-    {{else}}
-      {{#each this.errors as |error|}}
-        <div class='alert alert-warning' role='alert'>{{error.detail}}</div>
-      {{/each}}
-      <div class='form-group'>
-        <label for=''>ID</label>
-        <input
-          type='number'
-          class='form-control'
-          disabled
-          value={{@acronym.id}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Acronym</label>
-        <small class='form-text text-muted'>Required</small>
-        <input
-          type='text'
-          class='form-control'
-          value={{this.acronym}}
-          required
-          onchange={{action (mut this.acronym) value='target.value'}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Meaning</label>
-        <small class='form-text text-muted'>Required</small>
-        <input
-          type='text'
-          class='form-control'
-          value={{this.meaning}}
-          required
-          onchange={{action (mut this.meaning) value='target.value'}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Comment</label>
-        <textarea
-          type='text'
-          class='form-control'
-          rows='4'
-          value={{this.comment}}
-          onchange={{action (mut this.comment) value='target.value'}}
-        ></textarea>
-      </div>
-      <div class='form-group'>
-        <label for=''>Company</label>
-        <small class='form-text text-muted'>Required</small>
-        <input
-          type='text'
-          class='form-control'
-          value={{this.company}}
-          required
-          onchange={{action (mut this.company) value='target.value'}}
-        />
-      </div>
-      {{!  }}
-      {{!  }}
-      {{!  }}
-      {{!  }}
-      <div class='form-group'>
-        <label for=''>Created by</label>
-        <input
-          type='text'
-          class='form-control'
-          disabled
-          value={{@acronym.created_by}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Created at (UTC)</label>
-        <input
-          type='datetime-local'
-          class='form-control'
-          disabled
-          value={{@acronym.created_at}}
-        />
-      </div>
-      <p>{{@acronym.created_at}}</p>
-      <div class='form-group'>
-        <label for=''>Last modified by</label>
-        <input
-          type='text'
-          class='form-control'
-          disabled
-          value={{@acronym.last_modified_by}}
-        />
-      </div>
-      <div class='form-group'>
-        <label for=''>Last modified at (UTC)</label>
-        <input
-          type='datetime-local'
-          class='form-control'
-          disabled
-          value={{@acronym.last_modified_at}}
-        />
-      </div>
+    {{!-- {{#if @readOnly}} --}}
+    <div class='form-group'>
+      <label for=''>ID</label>
+      <input
+        type='number'
+        class='form-control'
+        readonly={{@readOnly}}
+        disabled={{not @readOnly}}
+        value={{@acronym.id}}
+      />
+    </div>
+    {{!  }}
+    <div class='form-group'>
+      <label for=''>Acronym</label>
+      <input
+        type='text'
+        class='form-control'
+        readonly={{@readOnly}}
+        value={{@acronym.acronym}}
+        {{on
+          'input'
+          (optional
+            (if
+              (not @readOnly)
+              (action (mut this.acronym) value='target.value')
+              null
+            )
+          )
+        }}
+        {{on
+          'input'
+          (optional (if (not @readOnly) (perform this.submitChanges) null))
+        }}
+      />
+    </div>
+    <div class='form-group'>
+      <label for=''>Meaning</label>
+      <input
+        type='text'
+        class='form-control'
+        readonly={{@readOnly}}
+        value={{@acronym.meaning}}
+        {{on
+          'input'
+          (optional
+            (if
+              (not @readOnly)
+              (action (mut this.meaning) value='target.value')
+              null
+            )
+          )
+        }}
+        {{on
+          'input'
+          (optional (if (not @readOnly) (perform this.submitChanges) null))
+        }}
+      />
+    </div>
+    <div class='form-group'>
+      <label for=''>Comment</label>
+      <textarea
+        type='text'
+        class='form-control'
+        rows='4'
+        readonly={{@readOnly}}
+        value={{@acronym.comment}}
+        {{on
+          'input'
+          (optional
+            (if
+              (not @readOnly)
+              (action (mut this.comment) value='target.value')
+              null
+            )
+          )
+        }}
+        {{on
+          'input'
+          (optional (if (not @readOnly) (perform this.submitChanges) null))
+        }}
+      ></textarea>
+    </div>
+    <div class='form-group'>
+      <label for=''>Company</label>
+      <input
+        type='text'
+        class='form-control'
+        readonly={{@readOnly}}
+        value={{@acronym.company}}
+        {{on
+          'input'
+          (optional
+            (if
+              (not @readOnly)
+              (action (mut this.company) value='target.value')
+              null
+            )
+          )
+        }}
+        {{on
+          'input'
+          (optional (if (not @readOnly) (perform this.submitChanges) null))
+        }}
+      />
+    </div>
+    {{!  }}
+    {{!  }}
+    {{!  }}
+    {{!  }}
+    <div class='form-group'>
+      <label for=''>Created by</label>
+      <input
+        type='text'
+        class='form-control'
+        readonly={{@readOnly}}
+        disabled={{not @readOnly}}
+        value={{@acronym.created_by}}
+      />
+    </div>
+    <div class='form-group'>
+      <label for=''>Created at (UTC)</label>
+      <input
+        type='datetime-local'
+        class='form-control'
+        readonly={{@readOnly}}
+        disabled={{not @readOnly}}
+        value={{@acronym.created_at}}
+      />
+    </div>
+    <p>{{@acronym.created_at}}</p>
+    <div class='form-group'>
+      <label for=''>Last modified by</label>
+      <input
+        type='text'
+        class='form-control'
+        readonly={{@readOnly}}
+        disabled={{not @readOnly}}
+        value={{@acronym.last_modified_by}}
+      />
+    </div>
+    <div class='form-group'>
+      <label for=''>Last modified at (UTC)</label>
+      <input
+        type='datetime-local'
+        class='form-control'
+        readonly={{@readOnly}}
+        disabled={{not @readOnly}}
+        value={{@acronym.last_modified_at}}
+      />
+    </div>
+    {{#unless @readOnly}}
       <button
+        style='width: 100%;'
         class='btn btn-primary'
         type='submit'
+        data-bs-toggle={{if this.canSubmit 'modal' ''}}
+        data-bs-target={{if this.canSubmit '#exampleModal' ''}}
+        disabled={{if this.canSubmit false true}}
         {{on 'click' (perform this.submitChanges)}}
       >Submit</button>
-    {{/if}}
+      <div
+        class='modal fade'
+        id='exampleModal'
+        tabindex='-1'
+        aria-labelledby='exampleModalLabel'
+        aria-hidden='true'
+      >
+        <div class='modal-dialog' style='max-width: 1000px;'>
+          <div class='modal-content'>
+            <div class='modal-header'>
+              <h5 class='modal-title' id='exampleModalLabel'>Confirmation</h5>
+              <button
+                type='button'
+                class='btn-close'
+                data-bs-dismiss='modal'
+                aria-label='Close'
+              ></button>
+            </div>
+            <div class='modal-body'>
+              <AcronymForm @readOnly={{true}} @acronym={{@acronym}} />
+            </div>
+            <div class='modal-footer'>
+              <button
+                type='button'
+                class='btn btn-secondary'
+                data-bs-dismiss='modal'
+              >Close</button>
+              <button
+                type='button'
+                class='btn btn-primary'
+                data-bs-dismiss='modal'
+                {{on 'click' (perform this.confirmSubmit)}}
+              >Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/unless}}
   </form>
 </div>

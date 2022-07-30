@@ -2,6 +2,7 @@ import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { task, taskGroup, timeout } from 'ember-concurrency';
+import { action } from '@ember/object';
 export default class AcronymsComponent extends Component {
   @service store;
   @tracked display_per_page = 3;
@@ -183,9 +184,15 @@ export default class AcronymsComponent extends Component {
       this.sorting_column = column.property;
       this.sorting_ascending = true;
     }
-    console.log(column);
-    console.log(this.sorting_column + '       ' + this.sorting_ascending);
     yield this.update.perform();
+  }
+
+  @action
+  handleEnterKeyQuery(event) {
+    // 13 is the keycode for the enter key
+    if (event.keyCode === 13) {
+      this.searchQuery.perform();
+    }
   }
 
   /**

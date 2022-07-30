@@ -21,7 +21,7 @@ export default class IndexController extends Controller {
     {
       name: 'comment',
       property: 'comment',
-      enabled: false,
+      enabled: true,
     },
     {
       name: 'company',

@@ -1,11 +1,57 @@
 {{page-title 'Acronym'}}
-<LinkTo
-  @route='edit'
-  @model={{@model}}
-  class='btn btn-success'
-  role='button'
->Edit</LinkTo>
 
-<div style='width: 75%;padding: 5%;'>
-  <AcronymForm @acronym={{@model}} @read-only={{true}} />
+<div class='acronym-form-container'>
+  <h1>Acronym</h1>
+  <AcronymForm @acronym={{@model}} @readOnly={{true}} />
+  <LinkTo
+    @route='edit'
+    @model={{@model}}
+    class='btn btn-success'
+    role='button'
+  >Edit</LinkTo>
+  <button
+    style='margin-top: 10px;'
+    class='btn btn-outline-danger'
+    data-bs-toggle='modal'
+    data-bs-target='#deleteModal'
+    type='button'
+  >Delete</button>
+  <div
+    class='modal fade'
+    id='deleteModal'
+    tabindex='-1'
+    aria-labelledby='deleteModalLabel'
+    aria-hidden='true'
+  >
+    <div class='modal-dialog'>
+      <div class='modal-content'>
+        <div class='modal-header'>
+          <h5 class='modal-title' id='deleteModalLabel'>Are you sure you want to
+            delete this acronym ?</h5>
+          <button
+            type='button'
+            class='btn-close'
+            data-bs-dismiss='modal'
+            aria-label='Close'
+          ></button>
+        </div>
+        {{! <div class='modal-body'> }}
+        {{! <h2>Are you sure you want to delete this acronym ?</h2> }}
+        {{! </div> }}
+        <div class='modal-footer'>
+          <button
+            type='button'
+            class='btn btn-secondary'
+            data-bs-dismiss='modal'
+          >Close</button>
+          <button
+            type='button'
+            class='btn btn-danger'
+            data-bs-dismiss='modal'
+            {{on 'click' (perform this.deleteAcronym)}}
+          >Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

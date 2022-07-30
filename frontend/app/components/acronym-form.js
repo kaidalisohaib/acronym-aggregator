@@ -2,7 +2,7 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { task } from 'ember-concurrency';
 import { service } from '@ember/service';
-
+import { action } from '@ember/object';
 export default class AcronymFormComponent extends Component {
   @service router;
   @tracked acronym = this.args.acronym.acronym;
@@ -10,9 +10,11 @@ export default class AcronymFormComponent extends Component {
   @tracked comment = this.args.acronym.comment;
   @tracked company = this.args.acronym.company;
   @tracked errors = [];
+  @tracked canSubmit = false;
 
   @task
   *submitChanges() {
+    this.canSubmit = false;
     this.acronym = this.acronym ? this.acronym.trim() : '';
     this.meaning = this.meaning ? this.meaning.trim() : '';
     this.comment = this.comment ? this.comment.trim() : '';
@@ -26,6 +28,13 @@ export default class AcronymFormComponent extends Component {
     this.args.acronym.meaning = this.meaning;
     this.args.acronym.comment = this.comment;
     this.args.acronym.company = this.company;
+    yield (this.canSubmit = Object.keys(
+      this.args.acronym.changedAttributes()
+    ).length);
+  }
+
+  @task({ drop: true })
+  *confirmSubmit() {
     if (this.args.acronym.hasDirtyAttributes) {
       yield this.args.acronym
         .save()
@@ -33,10 +42,15 @@ export default class AcronymFormComponent extends Component {
           this.router.transitionTo('acronym', new_acronym);
         })
         .catch((error) => {
-          console.log('Error: ', error);
           this.errors = error.errors;
         });
-      console.log(this.args.acronym.errors);
+    }
+  }
+
+  willDestroy() {
+    super.willDestroy(...arguments);
+    if (!this.args.readOnly) {
+      this.args.acronym.rollbackAttributes();
     }
   }
 }

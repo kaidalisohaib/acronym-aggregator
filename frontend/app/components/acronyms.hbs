@@ -1,17 +1,9 @@
 <div class='acronyms-div'>
-  <p>display_per_page: {{this.display_per_page}}</p>
-  <p>page: {{this.page}}</p>
-  <p>update state: {{this.update.state}}</p>
   <div class='d-flex justify-content-between'>
-    <button
-      class='btn btn-primary'
-      type='button'
-      {{on 'click' (perform this.searchQuery)}}
-    >Search</button>
     {{! List of checkbox to show/hide the columns }}
     <div class='dropdown'>
       <button
-        class='btn btn-secondary dropdown-toggle'
+        class='btn btn-primary dropdown-toggle'
         type='button'
         data-bs-toggle='dropdown'
         aria-expanded='false'
@@ -19,70 +11,85 @@
         Show/Hide Columns
       </button>
       <ul class='dropdown-menu' onclick='event.stopPropagation()'>
-        {{#each this.columns as |column|}}
-          <li>
-            <button
-              class='dropdown-item'
-              type='button'
-              disabled={{if column.always_show true false}}
-              {{on 'click' (perform this.toggleColumn column)}}
-            >
-              <input type='checkbox' checked={{if column.enabled true false}} />
-              {{column.name}}
-            </button>
-          </li>
-        {{/each}}
+        {{#if this.columns}}
+          {{#each this.columns as |column|}}
+            <li>
+              <button
+                class='dropdown-item'
+                type='button'
+                disabled={{if column.always_show true false}}
+                {{on 'click' (perform this.toggleColumn column)}}
+              >
+                <input
+                  type='checkbox'
+                  checked={{if column.enabled true false}}
+                />
+                {{column.name}}
+              </button>
+            </li>
+          {{/each}}
+        {{/if}}
       </ul>
     </div>
+    <button
+      class='btn btn-outline-success'
+      type='button'
+      {{on 'click' (perform this.searchQuery)}}
+    ><b>Search</b></button>
   </div>
   {{! Actual table being rendered }}
   <div class='table-responsive'>
     <table
-      class='acronyms-table table'
-      style='box-sizing: border-box; width: 100%;'
+      class='acronyms-table table table-hover table-striped'
+      style='box-sizing: border-box; table-layout: fixed;min-width: fit-content;width:auto;'
     >
       <thead>
         {{! ALL THE ENABLED HEADERS }}
         <tr>
-          {{#each this.columns as |column|}}
-            {{#if column.enabled}}
-              <th
-                role='button'
-                scope='col'
-                {{on 'click' (perform this.changeSorting column)}}
-              >{{column.name}}
-                {{if
-                  (eq column.property this.sorting_column)
-                  (if this.sorting_ascending '^' '˅')
-                  ''
-                }}
-              </th>
-            {{/if}}
-          {{/each}}
+          {{#if this.columns}}
+            {{#each this.columns as |column|}}
+              {{#if column.enabled}}
+                <th
+                  role='button'
+                  scope='col'
+                  {{on 'click' (perform this.changeSorting column)}}
+                >{{column.name}}
+                  {{if
+                    (eq column.property this.sorting_column)
+                    (if this.sorting_ascending '^' '˅')
+                    ''
+                  }}
+                </th>
+              {{/if}}
+            {{/each}}
+          {{/if}}
         </tr>
         {{! ALL QUERY OF THE HEADERS }}
         <tr>
-          {{#each this.columns as |column|}}
-            {{#if column.enabled}}
-              <th scope='col'>
-                <div style='display: flex; input-group'>
-                  <Input
-                    @type='text'
-                    style='width: calc(100% - 30px);'
-                    @value={{column.query}}
-                    class='form-control'
-                  />
-                  <button
-                    style='width: 30px;'
-                    disabled={{if column.query false true}}
-                    class='btn btn-outline-primary'
-                    type='button'
-                    {{on 'click' (perform this.clearQuery column)}}
-                  >X</button>
-                </div>
-              </th>
-            {{/if}}
-          {{/each}}
+          {{#if this.columns}}
+            {{#each this.columns as |column|}}
+              {{#if column.enabled}}
+                <th scope='col'>
+                  <div style='display: flex; input-group'>
+                    <Input
+                      @type='text'
+                      style='width: calc(100% - 30px);'
+                      @value={{column.query}}
+                      class='form-control'
+                      {{on 'keypress' this.handleEnterKeyQuery}}
+                    />
+                    <button
+                      style='width: 30px;'
+                      disabled={{if column.query false true}}
+                      class='btn btn-outline-primary'
+                      type='button'
+                      {{on 'click' (perform this.clearQuery column)}}
+                    >X</button>
+                  </div>
+                </th>
+              {{/if}}
+            {{/each}}
+          {{/if}}
         </tr>
       </thead>
       <tbody>
@@ -99,7 +106,7 @@
       class='spinner-border text-primary'
       style='width: 3rem; height: 3rem; visibility:{{if
         this.update.isRunning
-        "visible;"
+        "visible"
         "hidden"
       }};'
       role='status'
@@ -107,10 +114,7 @@
     </div>
   </div>
   <div style='display: flex;justify-content: space-between;'>
-    <div
-      class='input-group'
-      style='width: auto;position: relative; right: 0px;'
-    >
+    <div class='input-group' style='width: auto;'>
       <label class='input-group-text'>Rows:</label>
       <select
         class='form-control'

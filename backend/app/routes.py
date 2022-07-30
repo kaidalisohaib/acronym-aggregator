@@ -1,11 +1,11 @@
-from http.client import BAD_REQUEST, CONFLICT
+from http.client import BAD_REQUEST, CONFLICT, NO_CONTENT, NOT_FOUND
 
-import psycopg2
 from app import api, db
 from app.models import Acronym, AcronymSchema
-from flask import jsonify, request
+from flask import Response, request
 from flask_restful import Resource, abort
 from flask_sqlalchemy import BaseQuery
+from psycopg2.errorcodes import UNIQUE_VIOLATION
 from sqlalchemy import String, cast
 from sqlalchemy.exc import IntegrityError
 from webargs import fields, validate
@@ -105,9 +105,11 @@ class AcronymsListRessource(Resource):
         metadata["items_count"] = len(acronyms)
         if metadata:
             results["meta"] = metadata
-        return jsonify(results)
+        return results
 
     def post(self):
+        # request.json["data"].pop("id")
+
         errors = AcronymSchema().validate(request.json)
         if errors:
             abort(BAD_REQUEST, errors=errors["errors"])
@@ -123,11 +125,11 @@ class AcronymsListRessource(Resource):
         db.session.add(new_acronym)
         try:
             db.session.commit()
-            return jsonify(AcronymSchema().dump(new_acronym))
+            return AcronymSchema().dump(new_acronym), 201
         except IntegrityError as err:
             db.session.rollback()
             match err.orig.pgcode:
-                case psycopg2.errorcodes.UNIQUE_VIOLATION:
+                case UNIQUE_VIOLATION:
                     abort(
                         CONFLICT,
                         errors=[
@@ -145,7 +147,7 @@ class AcronymRessource(Resource):
         acronym = Acronym.query.get(acronym_id)
         if acronym is None:
             abort(http_status_code=404, message="Acronym not found.")
-        return jsonify(AcronymSchema().dump(acronym))
+        return AcronymSchema().dump(acronym)
 
     def patch(self, acronym_id):
         request.json["data"].pop("id")
@@ -157,6 +159,11 @@ class AcronymRessource(Resource):
         attributes = request.json["data"]["attributes"]
 
         acronym = Acronym.query.get(acronym_id)
+        if acronym is None:
+            abort(
+                NOT_FOUND,
+                errors=[{"status": NOT_FOUND, "detail": "Acronym not found."}],
+            )
         acronym.acronym = attributes["acronym"]
         acronym.meaning = attributes["meaning"]
         acronym.comment = attributes["comment"]
@@ -165,11 +172,11 @@ class AcronymRessource(Resource):
 
         try:
             db.session.commit()
-            return jsonify(AcronymSchema().dump(acronym))
+            return AcronymSchema().dump(acronym)
         except IntegrityError as err:
             db.session.rollback()
             match err.orig.pgcode:
-                case psycopg2.errorcodes.UNIQUE_VIOLATION:
+                case UNIQUE_VIOLATION:
                     abort(
                         CONFLICT,
                         errors=[
@@ -180,6 +187,20 @@ class AcronymRessource(Resource):
                             }
                         ],
                     )
+
+    def delete(self, acronym_id):
+        acronym_to_delete = Acronym.query.filter(Acronym.id == acronym_id)
+        if acronym_to_delete.count() == 0:
+            abort(
+                NOT_FOUND,
+                errors=[{"status": NOT_FOUND, "detail": "Acronym not found."}],
+            )
+        acronym_to_delete.delete()
+        try:
+            db.session.commit()
+            return Response(status=NO_CONTENT)
+        except:
+            db.session.rollback()
 
 
 api.add_resource(AcronymRessource, "/api/acronyms/<int:acronym_id>")
