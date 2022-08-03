@@ -1,5 +1,7 @@
 from datetime import datetime
+from pathlib import Path
 
+import sqlalchemy as sa
 from app import db, ma
 from marshmallow import ValidationError
 from marshmallow_jsonapi import Schema, fields
@@ -38,6 +40,26 @@ class Acronym(db.Model):
         return "<Acronym id: {} acronym: {}>".format(self.id, self.acronym)
 
 
+class Report(db.Model):
+    """Report table for versioning
+
+    The id represent the version, starting from 1.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(
+        db.DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+    zip_path = db.Column(db.String, nullable=False)
+
+    def __init__(self, zip_path: Path) -> None:
+        super().__init__()
+        self.zip_path = str(zip_path.absolute())
+
+    def __repr__(self) -> str:
+        return "<Report id: {} zip_path: {}>".format(self.id, self.zip_path)
+
+
 def string_not_empty(value):
     if len(value.strip()) < 1:
         raise ValidationError("Field is empty or filled with spaces.")
@@ -58,3 +80,14 @@ class AcronymSchema(Schema):
     last_modified_at = fields.DateTime(allow_none=True)
     created_by = fields.Email(allow_none=True)
     last_modified_by = fields.Email(allow_none=True)
+
+
+class ReportSchema(Schema):
+    class Meta:
+        type_ = "reports"
+        model = Acronym
+        strict = True
+
+    id = fields.Int(dump_only=True)
+    created_at = fields.DateTime(allow_none=True)
+    zip_path = fields.Str(required=True, validate=string_not_empty)

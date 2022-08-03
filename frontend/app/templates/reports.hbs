@@ -1,0 +1,65 @@
+{{page-title 'Reports'}}
+<div class='container'>
+  <button
+    class='btn btn-success'
+    data-bs-toggle='modal'
+    data-bs-target='#reportModal'
+  >Create new report</button>
+  <h1 style='margin-bottom: 20px;'>All reports:</h1>
+  <div class='list-group' style='flex-direction:column-reverse'>
+    {{#if @model}}
+      {{#each @model as |report|}}
+        <div class='list-group-item d-flex justify-content-between'>
+          <h3>
+            <span class='badge rounded-pill text-bg-primary'>
+              v{{report.id}}
+            </span>
+          </h3>
+          <h3 style='margin: 0px 10px;'>{{moment-from-now
+              (utc report.created_at)
+            }}</h3>
+          <button
+            class='btn btn btn-outline-success'
+            type='button'
+            {{on 'click' (perform this.downloadVersion report.id)}}
+          >Download</button>
+        </div>
+      {{/each}}
+    {{/if}}
+  </div>
+</div>
+<div
+  class='modal fade'
+  id='reportModal'
+  tabindex='-1'
+  aria-labelledby='reportModalLabel'
+  aria-hidden='true'
+>
+  <div class='modal-dialog' style='max-width: 1000px;'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <h5 class='modal-title' id='reportModalLabel'>Are you sure you want to
+          create a new report.</h5>
+        <button
+          type='button'
+          class='btn-close'
+          data-bs-dismiss='modal'
+          aria-label='Close'
+        ></button>
+      </div>
+      <div class='modal-footer'>
+        <button
+          type='button'
+          class='btn btn-secondary'
+          data-bs-dismiss='modal'
+        >Close</button>
+        <button
+          type='button'
+          class='btn btn-primary'
+          data-bs-dismiss='modal'
+          {{on 'click' (perform this.createReport)}}
+        >Create</button>
+      </div>
+    </div>
+  </div>
+</div>

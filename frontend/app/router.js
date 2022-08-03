@@ -12,4 +12,6 @@ Router.map(function () {
   this.route('acronym', { path: '/acronyms/:acronym_id' });
   this.route('edit', { path: '/edit/:acronym_id' });
   this.route('create');
+  this.route('login');
+  this.route('reports');
 });

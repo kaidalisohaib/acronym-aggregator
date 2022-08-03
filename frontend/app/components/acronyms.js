@@ -5,7 +5,7 @@ import { task, taskGroup, timeout } from 'ember-concurrency';
 import { action } from '@ember/object';
 export default class AcronymsComponent extends Component {
   @service store;
-  @tracked display_per_page = 3;
+  @tracked display_per_page = 10;
   @tracked page = 1;
   @tracked columns = [];
   @tracked acronyms = [];

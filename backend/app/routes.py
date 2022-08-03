@@ -1,11 +1,21 @@
-from http.client import BAD_REQUEST, CONFLICT, NO_CONTENT, NOT_FOUND
+import csv
+import os
+from http.client import (
+    BAD_REQUEST,
+    CONFLICT,
+    INTERNAL_SERVER_ERROR,
+    NO_CONTENT,
+    NOT_FOUND,
+)
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
 
 from app import api, db
-from app.models import Acronym, AcronymSchema
-from flask import Response, request
+from app.models import Acronym, AcronymSchema, Report, ReportSchema
+from flask import Response, request, send_file
 from flask_restful import Resource, abort
 from flask_sqlalchemy import BaseQuery
-from psycopg2.errorcodes import UNIQUE_VIOLATION
+from psycopg2 import errorcodes
 from sqlalchemy import String, cast
 from sqlalchemy.exc import IntegrityError
 from webargs import fields, validate
@@ -108,8 +118,6 @@ class AcronymsListRessource(Resource):
         return results
 
     def post(self):
-        # request.json["data"].pop("id")
-
         errors = AcronymSchema().validate(request.json)
         if errors:
             abort(BAD_REQUEST, errors=errors["errors"])
@@ -129,7 +137,7 @@ class AcronymsListRessource(Resource):
         except IntegrityError as err:
             db.session.rollback()
             match err.orig.pgcode:
-                case UNIQUE_VIOLATION:
+                case errorcodes.UNIQUE_VIOLATION:
                     abort(
                         CONFLICT,
                         errors=[
@@ -176,7 +184,7 @@ class AcronymRessource(Resource):
         except IntegrityError as err:
             db.session.rollback()
             match err.orig.pgcode:
-                case UNIQUE_VIOLATION:
+                case errorcodes.UNIQUE_VIOLATION:
                     abort(
                         CONFLICT,
                         errors=[
@@ -199,12 +207,72 @@ class AcronymRessource(Resource):
         try:
             db.session.commit()
             return Response(status=NO_CONTENT)
-        except:
+        except Exception:
             db.session.rollback()
+
+
+class ReportsListRessource(Resource):
+    def get(self):
+        reports = ReportSchema(many=True).dump(
+            Report.query.order_by(Report.created_at).all()
+        )
+        return reports
+
+    def post(self):
+        try:
+            new_id = generate_new_report()
+            return (
+                ReportSchema().dump(Report.query.get(new_id)),
+                201,
+            )
+        except Exception:
+            abort(
+                INTERNAL_SERVER_ERROR,
+                errors=[
+                    {
+                        "status": INTERNAL_SERVER_ERROR,
+                        "details": "Internal error, could not create a new report.",
+                    }
+                ],
+            )
+
+
+class ReportRessource(Resource):
+    def get(self, version):
+        """This route return the latest report in a zipfile
+
+        Keyword arguments:
+        version -- Version number, if not given then -1 means latest
+        Return: The compressed reported data
+        """
+        report = None
+        if version < 1:
+            report = Report.query.order_by(Report.created_at.desc()).first()
+        else:
+            report = Report.query.get(version)
+
+        if report is None:
+            abort(
+                NOT_FOUND,
+                errors=[{"status": NOT_FOUND, "detail": "Couldn't find this version."}],
+            )
+
+        if not Path(report.zip_path).exists():
+            abort(
+                NOT_FOUND,
+                errors=[
+                    {"status": NOT_FOUND, "detail": "This report file no longer exist."}
+                ],
+            )
+        zip_path = Path(report.zip_path)
+        return send_file(zip_path.absolute(), attachment_filename=zip_path.name)
 
 
 api.add_resource(AcronymRessource, "/api/acronyms/<int:acronym_id>")
 api.add_resource(AcronymsListRessource, "/api/acronyms")
+
+api.add_resource(ReportRessource, "/api/reports/<int:version>")
+api.add_resource(ReportsListRessource, "/api/reports")
 
 
 def build_acronyms_filter_sort_query(args) -> BaseQuery:
@@ -223,6 +291,7 @@ def build_acronyms_filter_sort_query(args) -> BaseQuery:
     for key, value in args.items():
         if key.startswith("filter"):
             # 7 is the length of the word "filter" + 1
+            # I only take the name of the column inside the square brackets
             column_name = key[7:-1]
             column = getattr(Acronym, column_name)
             query_object = query_object.filter(
@@ -242,3 +311,79 @@ def build_acronyms_filter_sort_query(args) -> BaseQuery:
         query_object = query_object.order_by(Acronym.id)
 
     return query_object
+
+
+def generate_new_report():
+    # Create temp dir if it doesn't exist
+    temp_path = Path("./tmp")
+    temp_path.mkdir(exist_ok=True)
+
+    new_report = Report(temp_path.absolute())
+    db.session.add(new_report)
+    db.session.commit()
+
+    # Latest version number
+    new_version = new_report.id
+
+    db.session.rollback()
+
+    # Create the reports dir if it doesn't exist
+    reports_path = Path("./reports")
+    reports_path.mkdir(exist_ok=True)
+
+    # New csv file
+    new_csv_temp_path: Path = Path(f"{temp_path}/all_acronyms_v{new_version}.csv")
+    # New pdf file
+    new_pdf_temp_path: Path = Path(f"{temp_path}/all_acronyms_v{new_version}.pdf")
+    # New report zip file
+    new_zip_path: Path = Path(f"{reports_path}/all_acronyms_v{new_version}.zip")
+    try:
+        create_and_fill_csv_file(str(new_csv_temp_path.absolute()))
+        create_and_fill_pdf_file(str(new_pdf_temp_path.absolute()))
+        # Compress the generated files
+        with ZipFile(new_zip_path, mode="w") as zipfile:
+            if new_csv_temp_path.exists():
+                zipfile.write(
+                    new_csv_temp_path.absolute(),
+                    new_csv_temp_path.name,
+                    compress_type=ZIP_DEFLATED,
+                )
+
+            if new_pdf_temp_path.exists():
+                zipfile.write(
+                    new_pdf_temp_path.absolute(),
+                    new_pdf_temp_path.name,
+                    compress_type=ZIP_DEFLATED,
+                )
+        Report.query.get(new_version).zip_path = str(new_zip_path.absolute())
+        db.session.commit()
+        return new_version
+    except Exception:
+        db.session.rollback()
+        raise Exception("Could't generate a new report.")
+    finally:
+        if new_csv_temp_path.exists():
+            os.remove(new_csv_temp_path)
+        if new_pdf_temp_path.exists():
+            os.remove(new_pdf_temp_path)
+
+
+def create_and_fill_csv_file(filepath: Path):
+    "Fill a csv file with all the acronyms"
+    with open(filepath, "w") as file:
+        out = csv.writer(file)
+        out.writerow(Acronym.__table__.columns.keys())
+        # Write all rows into the file
+        for acronym in Acronym.query.all():
+            out.writerow(
+                [
+                    getattr(acronym, column_name)
+                    for column_name in Acronym.__table__.columns.keys()
+                ]
+            )
+
+
+# For now this function does nothing because I didn't found a library
+# to generate a good pdf file
+def create_and_fill_pdf_file(filepath: Path):
+    pass

@@ -1,4 +1,5 @@
 <div class='acronym-form'>
+  <p>{{this.elementId}}</p>
   {{#unless @readOnly}}
     {{#each this.errors as |error|}}
       <div class='alert alert-warning' role='alert'>{{error.detail}}</div>
@@ -27,16 +28,12 @@
         {{on
           'input'
           (optional
-            (if
-              (not @readOnly)
-              (action (mut this.acronym) value='target.value')
-              null
-            )
+            (if @readOnly null (action (mut this.acronym) value='target.value'))
           )
         }}
         {{on
           'input'
-          (optional (if (not @readOnly) (perform this.submitChanges) null))
+          (optional (if @readOnly null (perform this.submitChanges)))
         }}
       />
     </div>
@@ -50,16 +47,12 @@
         {{on
           'input'
           (optional
-            (if
-              (not @readOnly)
-              (action (mut this.meaning) value='target.value')
-              null
-            )
+            (if @readOnly null (action (mut this.meaning) value='target.value'))
           )
         }}
         {{on
           'input'
-          (optional (if (not @readOnly) (perform this.submitChanges) null))
+          (optional (if @readOnly null (perform this.submitChanges)))
         }}
       />
     </div>
@@ -74,16 +67,12 @@
         {{on
           'input'
           (optional
-            (if
-              (not @readOnly)
-              (action (mut this.comment) value='target.value')
-              null
-            )
+            (if @readOnly null (action (mut this.comment) value='target.value'))
           )
         }}
         {{on
           'input'
-          (optional (if (not @readOnly) (perform this.submitChanges) null))
+          (optional (if @readOnly null (perform this.submitChanges)))
         }}
       ></textarea>
     </div>
@@ -97,16 +86,12 @@
         {{on
           'input'
           (optional
-            (if
-              (not @readOnly)
-              (action (mut this.company) value='target.value')
-              null
-            )
+            (if @readOnly null (action (mut this.company) value='target.value'))
           )
         }}
         {{on
           'input'
-          (optional (if (not @readOnly) (perform this.submitChanges) null))
+          (optional (if @readOnly null (perform this.submitChanges)))
         }}
       />
     </div>
@@ -161,21 +146,24 @@
         class='btn btn-primary'
         type='submit'
         data-bs-toggle={{if this.canSubmit 'modal' ''}}
-        data-bs-target={{if this.canSubmit '#exampleModal' ''}}
+        data-bs-target={{if this.canSubmit '#acronymFormModal' ''}}
         disabled={{if this.canSubmit false true}}
         {{on 'click' (perform this.submitChanges)}}
       >Submit</button>
       <div
         class='modal fade'
-        id='exampleModal'
+        id='acronymFormModal'
         tabindex='-1'
-        aria-labelledby='exampleModalLabel'
+        aria-labelledby='acronymFormModalLabel'
         aria-hidden='true'
       >
         <div class='modal-dialog' style='max-width: 1000px;'>
           <div class='modal-content'>
             <div class='modal-header'>
-              <h5 class='modal-title' id='exampleModalLabel'>Confirmation</h5>
+              <h5
+                class='modal-title'
+                id='acronymFormModalLabel'
+              >Confirmation</h5>
               <button
                 type='button'
                 class='btn-close'
