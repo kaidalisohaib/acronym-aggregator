@@ -1,5 +1,5 @@
 {{page-title 'Frontend'}}
-<nav class='navbar navbar-expand-lg bg-light'>
+<nav class='navbar navbar-expand-lg'>
   <div class='container-fluid'>
     <LinkTo class='navbar-brand link-primary' @route='index'><b
       >Index</b></LinkTo>
@@ -31,6 +31,14 @@
             aria-current='page'
             target='_blank'
           ><b>Reports</b></LinkTo>
+        </li>
+        <li class='nav-item'>
+          <LinkTo
+            @route='upload'
+            class='nav-link active link-info'
+            aria-current='page'
+            target='_blank'
+          ><b>Upload</b></LinkTo>
         </li>
       </ul>
     </div>

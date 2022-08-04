@@ -1,0 +1,137 @@
+{{page-title 'Upload'}}
+<div class='container' style='max-width: 600px;'>
+  <div class='accordion' id='accordionRestrictions'>
+    <div class='accordion-item'>
+      <h2 class='accordion-header' id='accordionRestrictions-headingOne'>
+        <button
+          class='accordion-button collapsed'
+          type='button'
+          data-bs-toggle='collapse'
+          data-bs-target='#accordionRestrictions-collapseOne'
+          aria-expanded='false'
+          aria-controls='accordionRestrictions-collapseOne'
+        >
+          Restrictions
+        </button>
+      </h2>
+      <div
+        id='accordionRestrictions-collapseOne'
+        class='accordion-collapse collapse show'
+        aria-labelledby='accordionRestrictions-headingOne'
+        data-bs-parent='#accordionRestrictions'
+      >
+        <div class='accordion-body'>
+          <p>The csv file need to have four columns, the first one contains the
+            acronym, the second the meaning, the third the comment and the
+            fourth the company.</p>
+          <p>Additional points:</p>
+          <ul>
+            <li>The acronym, meaning and company columns are required.</li>
+            <li>Remove the headers from the file, only the data need to be in
+              it.</li>
+            <li>The additional columns are ignored. So you can have more then 4
+              columns but only the first four are getting read.</li>
+          </ul>
+          <p><b>Any row that doesn't follow those rules is getting skipped.</b></p>
+          <p><i>If a row follow all those rules but already exist in the
+              database it is also getting skipped.</i></p>
+          <p>Example:</p>
+          <table class='table table-bordered'>
+            <tbody>
+              <tr>
+                <td><b>acronym#1</b></td>
+                <td><b>meaning#1</b></td>
+                <td>comment#1</td>
+                <td><b>company#1</b></td>
+              </tr>
+              <tr>
+                <td><b>acronym#2</b></td>
+                <td><b>meaning#2</b></td>
+                <td>comment#2</td>
+                <td><b>company#2</b></td>
+              </tr>
+              <tr>
+                <td>
+                  <b>...</b>
+                </td>
+                <td>
+                  <b>...</b>
+                </td>
+                <td>
+                  ...
+                </td>
+                <td>
+                  <b>...</b>
+                </td>
+              </tr>
+              <tr>
+                <td><b>acronym#n</b></td>
+                <td><b>meaning#n</b></td>
+                <td>comment#n</td>
+                <td><b>company#n</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h3>Upload CSV file</h3>
+  {{#let
+    (file-queue name='csv_acronyms' onFileAdded=(perform this.uploadCSV))
+    as |queue|
+  }}
+    <div class='mb-3'>
+      <input
+        class='form-control'
+        type='file'
+        accept='text/csv'
+        {{queue.selectFile}}
+      />
+    </div>
+    {{#if queue.files.length}}
+      <p>Uploading...</p>
+      <div class='progress'>
+        <div
+          class='progress-bar progress-bar-striped progress-bar-animated'
+          role='progressbar'
+          aria-label='Animated striped example'
+          aria-valuenow='{{queue.progress}}'
+          aria-valuemin='0'
+          aria-valuemax='100'
+          style='width: {{queue.progress}}%'
+        ></div>
+      </div>
+    {{/if}}
+  {{/let}}
+  {{#if this.errors}}
+    {{#each this.errors as |error|}}
+      <div class='alert alert-warning' role='alert' style='margin: 5px 0;'>
+        {{error.detail}}
+      </div>
+    {{/each}}
+  {{/if}}
+  {{#if this.totalRows}}
+    <div class='alert alert-primary' role='alert' style='margin: 5px 0;'>
+      <h4 class='alert-heading'>Added
+        {{this.addedRows}}/{{this.totalRows}}
+        rows</h4>
+      {{#if this.skippedRows}}
+        <hr />
+        <h4 class='alert-heading'>Skipped rows:</h4>
+        <hr />
+        <div
+          style='display: flex; max-width: 600px; flex-direction: row; align-content: center; gap: 10px;flex-wrap: wrap;'
+        >
+          {{#each this.skippedRows as |rowNumber|}}
+            <h4>
+              <span class='badge text-bg-light' style='width: fit-content;'>
+                {{rowNumber}}
+              </span>
+            </h4>
+          {{/each}}
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+</div>

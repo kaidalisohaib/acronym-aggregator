@@ -14,4 +14,5 @@ Router.map(function () {
   this.route('create');
   this.route('login');
   this.route('reports');
+  this.route('upload');
 });

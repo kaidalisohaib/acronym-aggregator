@@ -10,8 +10,6 @@ export default class ReportsController extends Controller {
 
   @task({ drop: true })
   *downloadVersion(version) {
-    console.log(version);
-    // download(`/api/reports/${version}`, `all_acronyms_v${version}.zip`);
     var x = new XMLHttpRequest();
     x.open('GET', `/api/reports/${version}`, true);
     x.responseType = 'blob';
@@ -27,12 +25,11 @@ export default class ReportsController extends Controller {
 
   @task({ drop: true })
   *createReport() {
-    yield this.store
-      .createRecord('report')
-      .save()
-      .catch((error) => {
-        this.errors = error.errors;
-      });
+    let new_record = this.store.createRecord('report');
+    yield new_record.save().catch((error) => {
+      new_record.rollbackAttributes();
+      this.errors = error.errors;
+    });
     yield timeout(2000);
   }
 }

@@ -1,8 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-import sqlalchemy as sa
-from app import db, ma
+from app import db
 from marshmallow import ValidationError
 from marshmallow_jsonapi import Schema, fields
 from sqlalchemy import UniqueConstraint
@@ -60,7 +59,7 @@ class Report(db.Model):
         return "<Report id: {} zip_path: {}>".format(self.id, self.zip_path)
 
 
-def string_not_empty(value):
+def string_not_empty_validator(value):
     if len(value.strip()) < 1:
         raise ValidationError("Field is empty or filled with spaces.")
 
@@ -72,10 +71,10 @@ class AcronymSchema(Schema):
         strict = True
 
     id = fields.Int(dump_only=True)
-    acronym = fields.Str(required=True, validate=string_not_empty)
-    meaning = fields.Str(required=True, validate=string_not_empty)
+    acronym = fields.Str(required=True, validate=string_not_empty_validator)
+    meaning = fields.Str(required=True, validate=string_not_empty_validator)
     comment = fields.Str(allow_none=True)
-    company = fields.Str(required=True, validate=string_not_empty)
+    company = fields.Str(required=True, validate=string_not_empty_validator)
     created_at = fields.DateTime(allow_none=True)
     last_modified_at = fields.DateTime(allow_none=True)
     created_by = fields.Email(allow_none=True)
@@ -90,4 +89,4 @@ class ReportSchema(Schema):
 
     id = fields.Int(dump_only=True)
     created_at = fields.DateTime(allow_none=True)
-    zip_path = fields.Str(required=True, validate=string_not_empty)
+    zip_path = fields.Str(required=True, validate=string_not_empty_validator)

@@ -9,3 +9,7 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = (
         os.environ["SQLALCHEMY_TRACK_MODIFICATIONS"] or False
     )
+    TMP_FOLDER = os.environ.get("TMP_FOLDER")
+    REPORTS_FOLDER = os.environ.get("REPORTS_FOLDER")
+    ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
+    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")

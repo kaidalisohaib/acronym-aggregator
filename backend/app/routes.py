@@ -1,25 +1,31 @@
 import csv
-import os
+import io
 from http.client import (
+    ACCEPTED,
     BAD_REQUEST,
     CONFLICT,
+    CREATED,
     INTERNAL_SERVER_ERROR,
     NO_CONTENT,
     NOT_FOUND,
 )
 from pathlib import Path
-from zipfile import ZIP_DEFLATED, ZipFile
 
 from app import api, db
 from app.models import Acronym, AcronymSchema, Report, ReportSchema
 from flask import Response, request, send_file
 from flask_restful import Resource, abort
-from flask_sqlalchemy import BaseQuery
 from psycopg2 import errorcodes
-from sqlalchemy import String, cast
 from sqlalchemy.exc import IntegrityError
 from webargs import fields, validate
 from webargs.flaskparser import use_args
+
+from .utils import (
+    allowed_file,
+    build_acronyms_filter_sort_query,
+    generate_new_report,
+    string_is_empty,
+)
 
 
 class AcronymsListRessource(Resource):
@@ -133,7 +139,7 @@ class AcronymsListRessource(Resource):
         db.session.add(new_acronym)
         try:
             db.session.commit()
-            return AcronymSchema().dump(new_acronym), 201
+            return AcronymSchema().dump(new_acronym), CREATED
         except IntegrityError as err:
             db.session.rollback()
             match err.orig.pgcode:
@@ -223,7 +229,7 @@ class ReportsListRessource(Resource):
             new_id = generate_new_report()
             return (
                 ReportSchema().dump(Report.query.get(new_id)),
-                201,
+                CREATED,
             )
         except Exception:
             abort(
@@ -239,7 +245,7 @@ class ReportsListRessource(Resource):
 
 class ReportRessource(Resource):
     def get(self, version):
-        """This route return the latest report in a zipfile
+        """This route return the report in a zipfile
 
         Keyword arguments:
         version -- Version number, if not given then -1 means latest
@@ -268,122 +274,80 @@ class ReportRessource(Resource):
         return send_file(zip_path.absolute(), attachment_filename=zip_path.name)
 
 
+class UploadCSVRessource(Resource):
+    def post(self):
+        pass
+        print(request.files)
+        print(request.files["file"])
+        if "file" not in request.files:
+            abort(
+                NOT_FOUND,
+                errors=[{"status": NOT_FOUND, "detail": "File part is missing."}],
+            )
+
+        file = request.files["file"]
+        if file.filename == "":
+            abort(
+                NOT_FOUND,
+                errors=[{"status": NOT_FOUND, "detail": "No file selected."}],
+            )
+
+        if file and not allowed_file(file.filename):
+            abort(
+                BAD_REQUEST,
+                errors=[
+                    {"status": BAD_REQUEST, "detail": "File extension not allowed"}
+                ],
+            )
+
+        file_data = io.StringIO(file.read().decode("latin-1"))
+        reader = csv.reader(file_data)
+        rows = list(reader)
+        skipped_rows = []
+        if not rows:
+            abort(
+                BAD_REQUEST,
+                errors=[{"status": BAD_REQUEST, "detail": "No rows in file."}],
+            )
+        added_rows = 0
+        for index, row in enumerate(rows):
+            if len(row) < 4:
+                skipped_rows.append(index)
+                continue
+            if (
+                string_is_empty(row[0])
+                or string_is_empty(row[1])
+                or string_is_empty(row[3])
+            ):
+                skipped_rows.append(index)
+                continue
+            try:
+                new_acronym = Acronym(row[0], row[1], row[2], row[3], "email@email.com")
+                db.session.add(new_acronym)
+                db.session.commit()
+                added_rows += 1
+            except Exception:
+                skipped_rows.append(index)
+                db.session.rollback()
+        file_data.close()
+        if skipped_rows:
+            return {
+                "skippedRows": skipped_rows,
+                "addedRows": added_rows,
+                "totalRows": len(rows),
+            }, ACCEPTED
+
+        return {
+            "skippedRows": skipped_rows,
+            "addedRows": added_rows,
+            "totalRows": len(rows),
+        }, CREATED
+
+
 api.add_resource(AcronymRessource, "/api/acronyms/<int:acronym_id>")
 api.add_resource(AcronymsListRessource, "/api/acronyms")
 
 api.add_resource(ReportRessource, "/api/reports/<int:version>")
 api.add_resource(ReportsListRessource, "/api/reports")
 
-
-def build_acronyms_filter_sort_query(args) -> BaseQuery:
-    """Build a query with the filters given and the column to sort
-
-    Keyword arguments:
-    argument -- Parameters of the api request
-    Return: return_description
-    For each column we verify if the args contains the proper keyword
-        If yes we add the filter
-        Else we continue to the next column
-    """
-
-    query_object = Acronym.query
-    # Adding filters to the query
-    for key, value in args.items():
-        if key.startswith("filter"):
-            # 7 is the length of the word "filter" + 1
-            # I only take the name of the column inside the square brackets
-            column_name = key[7:-1]
-            column = getattr(Acronym, column_name)
-            query_object = query_object.filter(
-                cast(column, String).contains(str(value))
-            )
-    # Adding the sorting to the query
-    if "sorting[column]" in args:
-        if args["sorting[ascending]"]:
-            query_object = query_object.order_by(
-                getattr(Acronym, args["sorting[column]"]).asc(), Acronym.id
-            )
-        else:
-            query_object = query_object.order_by(
-                getattr(Acronym, args["sorting[column]"]).desc(), Acronym.id
-            )
-    else:
-        query_object = query_object.order_by(Acronym.id)
-
-    return query_object
-
-
-def generate_new_report():
-    # Create temp dir if it doesn't exist
-    temp_path = Path("./tmp")
-    temp_path.mkdir(exist_ok=True)
-
-    new_report = Report(temp_path.absolute())
-    db.session.add(new_report)
-    db.session.commit()
-
-    # Latest version number
-    new_version = new_report.id
-
-    db.session.rollback()
-
-    # Create the reports dir if it doesn't exist
-    reports_path = Path("./reports")
-    reports_path.mkdir(exist_ok=True)
-
-    # New csv file
-    new_csv_temp_path: Path = Path(f"{temp_path}/all_acronyms_v{new_version}.csv")
-    # New pdf file
-    new_pdf_temp_path: Path = Path(f"{temp_path}/all_acronyms_v{new_version}.pdf")
-    # New report zip file
-    new_zip_path: Path = Path(f"{reports_path}/all_acronyms_v{new_version}.zip")
-    try:
-        create_and_fill_csv_file(str(new_csv_temp_path.absolute()))
-        create_and_fill_pdf_file(str(new_pdf_temp_path.absolute()))
-        # Compress the generated files
-        with ZipFile(new_zip_path, mode="w") as zipfile:
-            if new_csv_temp_path.exists():
-                zipfile.write(
-                    new_csv_temp_path.absolute(),
-                    new_csv_temp_path.name,
-                    compress_type=ZIP_DEFLATED,
-                )
-
-            if new_pdf_temp_path.exists():
-                zipfile.write(
-                    new_pdf_temp_path.absolute(),
-                    new_pdf_temp_path.name,
-                    compress_type=ZIP_DEFLATED,
-                )
-        Report.query.get(new_version).zip_path = str(new_zip_path.absolute())
-        db.session.commit()
-        return new_version
-    except Exception:
-        db.session.rollback()
-        raise Exception("Could't generate a new report.")
-    finally:
-        if new_csv_temp_path.exists():
-            os.remove(new_csv_temp_path)
-        if new_pdf_temp_path.exists():
-            os.remove(new_pdf_temp_path)
-
-
-def create_and_fill_csv_file(filepath: Path):
-    "Fill a csv file with all the acronyms"
-    with open(filepath, "w") as file:
-        out = csv.writer(file)
-        out.writerow(Acronym.__table__.columns.keys())
-        # Write all rows into the file
-        for acronym in Acronym.query.all():
-            out.writerow(
-                [
-                    getattr(acronym, column_name)
-                    for column_name in Acronym.__table__.columns.keys()
-                ]
-            )
-
-
-# For now this function does nothing because I didn't found a library
-# to generate a good pdf file
-def create_and_fill_pdf_file(filepath: Path):
-    pass
+api.add_resource(UploadCSVRessource, "/api/upload")

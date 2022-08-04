@@ -17,7 +17,6 @@
               <button
                 class='dropdown-item'
                 type='button'
-                disabled={{if column.always_show true false}}
                 {{on 'click' (perform this.toggleColumn column)}}
               >
                 <input

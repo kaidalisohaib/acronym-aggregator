@@ -14,7 +14,5 @@ ma: Marshmallow = Marshmallow(app)
 
 from app import models, routes
 
-
-def init_db():
-    db.create_all()
-    db.session.commit()
+db.create_all()
+db.session.commit()
