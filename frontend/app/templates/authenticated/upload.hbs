@@ -104,6 +104,11 @@
       </div>
     {{/if}}
   {{/let}}
+  {{#if this.lastUploadedFilename}}
+    <div class='alert alert-info' role='alert' style='margin: 5px 0;'>
+      {{this.lastUploadedFilename}}
+    </div>
+  {{/if}}
   {{#if this.errors}}
     {{#each this.errors as |error|}}
       <div class='alert alert-warning' role='alert' style='margin: 5px 0;'>

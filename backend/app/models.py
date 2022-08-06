@@ -5,6 +5,19 @@ from app import db
 from marshmallow import ValidationError
 from marshmallow_jsonapi import Schema, fields
 from sqlalchemy import UniqueConstraint
+from werkzeug.security import check_password_hash, generate_password_hash
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True)
+    password_hash = db.Column(db.String(128))
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password) -> bool:
+        return check_password_hash(self.password_hash, password)
 
 
 class Acronym(db.Model):
@@ -19,21 +32,28 @@ class Acronym(db.Model):
     last_modified_at = db.Column(
         db.DateTime(timezone=True), onupdate=datetime.utcnow, nullable=True
     )
-    created_by = db.Column(db.String(), nullable=False)
-    last_modified_by = db.Column(db.String(), nullable=True)
+    created_by = db.Column(db.String(), db.ForeignKey(User.email), nullable=False)
+    last_modified_by = db.Column(db.String(), db.ForeignKey(User.email), nullable=True)
+
+    created_user = db.relationship(User, foreign_keys=[created_by])
+    modified_user = db.relationship(User, foreign_keys=[last_modified_by])
+
     __table_args__ = (
         UniqueConstraint(
             "acronym", "meaning", "comment", "company", name="acronym_info_uc"
         ),
     )
 
-    def __init__(self, acronym, meaning, comment, company, user_email) -> None:
+    def __init__(self, acronym, meaning, comment, company, user: User) -> None:
         super().__init__()
         self.acronym = acronym
         self.meaning = meaning
         self.comment = comment
         self.company = company
-        self.created_by = user_email
+        self.created_by = user.email
+
+    def set_modified_user(self, user: User):
+        self.last_modified_by = user.email
 
     def __repr__(self) -> str:
         return "<Acronym id: {} acronym: {}>".format(self.id, self.acronym)

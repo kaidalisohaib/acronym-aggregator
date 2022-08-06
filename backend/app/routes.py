@@ -8,12 +8,14 @@ from http.client import (
     INTERNAL_SERVER_ERROR,
     NO_CONTENT,
     NOT_FOUND,
+    UNAUTHORIZED,
 )
 from pathlib import Path
 
-from app import api, db
-from app.models import Acronym, AcronymSchema, Report, ReportSchema
-from flask import Response, request, send_file
+from app import api, app, db, jwt
+from app.models import Acronym, AcronymSchema, Report, ReportSchema, User
+from flask import Response, jsonify, request, send_file
+from flask_jwt_extended import create_access_token, current_user, jwt_required
 from flask_restful import Resource, abort
 from psycopg2 import errorcodes
 from sqlalchemy.exc import IntegrityError
@@ -28,7 +30,19 @@ from .utils import (
 )
 
 
-class AcronymsListRessource(Resource):
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user.id
+
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    print("tSERSDFLJALS")
+    identity = jwt_data["sub"]
+    return User.query.get(identity)
+
+
+class AcronymsListResource(Resource):
     @use_args(
         {
             "display_per_page": fields.Int(
@@ -123,6 +137,7 @@ class AcronymsListRessource(Resource):
             results["meta"] = metadata
         return results
 
+    @jwt_required()
     def post(self):
         errors = AcronymSchema().validate(request.json)
         if errors:
@@ -134,7 +149,7 @@ class AcronymsListRessource(Resource):
             attributes["meaning"],
             attributes["comment"],
             attributes["company"],
-            "email@email.com",
+            current_user,
         )
         db.session.add(new_acronym)
         try:
@@ -149,20 +164,23 @@ class AcronymsListRessource(Resource):
                         errors=[
                             {
                                 "status": CONFLICT,
-                                "detail": "Acronym with the same details \
-                                    already exist in the database.",
+                                "detail": (
+                                    "Acronym with the same details already"
+                                    " exists in the database."
+                                ),
                             }
                         ],
                     )
 
 
-class AcronymRessource(Resource):
+class AcronymResource(Resource):
     def get(self, acronym_id):
         acronym = Acronym.query.get(acronym_id)
         if acronym is None:
             abort(http_status_code=404, message="Acronym not found.")
         return AcronymSchema().dump(acronym)
 
+    @jwt_required()
     def patch(self, acronym_id):
         request.json["data"].pop("id")
 
@@ -182,7 +200,7 @@ class AcronymRessource(Resource):
         acronym.meaning = attributes["meaning"]
         acronym.comment = attributes["comment"]
         acronym.company = attributes["company"]
-        acronym.last_modified_by = "email@email.com"
+        acronym.set_modified_user(current_user)
 
         try:
             db.session.commit()
@@ -196,12 +214,15 @@ class AcronymRessource(Resource):
                         errors=[
                             {
                                 "status": CONFLICT,
-                                "detail": "Acronym with the same details\
-                                    already exist in the database.",
+                                "detail": (
+                                    "Acronym with the same details already"
+                                    " exists in the database."
+                                ),
                             }
                         ],
                     )
 
+    @jwt_required()
     def delete(self, acronym_id):
         acronym_to_delete = Acronym.query.filter(Acronym.id == acronym_id)
         if acronym_to_delete.count() == 0:
@@ -213,17 +234,18 @@ class AcronymRessource(Resource):
         try:
             db.session.commit()
             return Response(status=NO_CONTENT)
-        except Exception:
+        except IntegrityError:
             db.session.rollback()
 
 
-class ReportsListRessource(Resource):
+class ReportsListResource(Resource):
     def get(self):
         reports = ReportSchema(many=True).dump(
             Report.query.order_by(Report.created_at).all()
         )
         return reports
 
+    @jwt_required()
     def post(self):
         try:
             new_id = generate_new_report()
@@ -243,7 +265,7 @@ class ReportsListRessource(Resource):
             )
 
 
-class ReportRessource(Resource):
+class ReportResource(Resource):
     def get(self, version):
         """This route return the report in a zipfile
 
@@ -267,14 +289,18 @@ class ReportRessource(Resource):
             abort(
                 NOT_FOUND,
                 errors=[
-                    {"status": NOT_FOUND, "detail": "This report file no longer exist."}
+                    {
+                        "status": NOT_FOUND,
+                        "detail": "This report file no longer exists.",
+                    }
                 ],
             )
         zip_path = Path(report.zip_path)
         return send_file(zip_path.absolute(), attachment_filename=zip_path.name)
 
 
-class UploadCSVRessource(Resource):
+class UploadCSVResource(Resource):
+    @jwt_required()
     def post(self):
         pass
         print(request.files)
@@ -322,11 +348,11 @@ class UploadCSVRessource(Resource):
                 skipped_rows.append(index)
                 continue
             try:
-                new_acronym = Acronym(row[0], row[1], row[2], row[3], "email@email.com")
+                new_acronym = Acronym(row[0], row[1], row[2], row[3], current_user)
                 db.session.add(new_acronym)
                 db.session.commit()
                 added_rows += 1
-            except Exception:
+            except IntegrityError:
                 skipped_rows.append(index)
                 db.session.rollback()
         file_data.close()
@@ -344,10 +370,61 @@ class UploadCSVRessource(Resource):
         }, CREATED
 
 
-api.add_resource(AcronymRessource, "/api/acronyms/<int:acronym_id>")
-api.add_resource(AcronymsListRessource, "/api/acronyms")
+class RegisterResource(Resource):
+    def post(self):
+        email = request.json.get("email", None)
+        password = request.json.get("password", None)
 
-api.add_resource(ReportRessource, "/api/reports/<int:version>")
-api.add_resource(ReportsListRessource, "/api/reports")
+        user = User.query.filter(User.email == email).one_or_none()
+        if user:
+            abort(
+                CONFLICT,
+                errors=[{"status": CONFLICT, "detail": "User already exists."}],
+            )
 
-api.add_resource(UploadCSVRessource, "/api/upload")
+        new_user = User(email=email)
+        new_user.set_password(password)
+        db.session.add(new_user)
+        try:
+            db.session.commit()
+            return Response(status=NO_CONTENT)
+        except IntegrityError:
+            db.session.rollback()
+            abort(
+                INTERNAL_SERVER_ERROR,
+                errors=[
+                    {
+                        "status": INTERNAL_SERVER_ERROR,
+                        "detail": "Something went wrong while creating the new user.",
+                    }
+                ],
+            )
+
+
+class LoginResource(Resource):
+    def post(self):
+        email = request.json.get("email", None)
+        password = request.json.get("password", None)
+
+        user = User.query.filter(User.email == email).one_or_none()
+
+        if not user or not user.check_password(password):
+            abort(
+                UNAUTHORIZED,
+                errors=[{"status": UNAUTHORIZED, "detail": "Wrong email or password"}],
+            )
+
+        access_token = create_access_token(identity=user)
+        return jsonify(access_token=access_token)
+
+
+api.add_resource(AcronymResource, "/api/acronyms/<int:acronym_id>")
+api.add_resource(AcronymsListResource, "/api/acronyms")
+
+api.add_resource(ReportResource, "/api/reports/<int:version>")
+api.add_resource(ReportsListResource, "/api/reports")
+
+api.add_resource(UploadCSVResource, "/api/upload")
+
+api.add_resource(RegisterResource, "/api/register")
+api.add_resource(LoginResource, "/api/login")

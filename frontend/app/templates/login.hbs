@@ -1,2 +1,39 @@
 {{page-title 'Login'}}
-<h1>LOGIN PAGE</h1>
+<div class='container'>
+  <h1>Login:</h1>
+
+  <form {{on 'submit' (perform this.authenticate)}}>
+    <div class='mb-3 row'>
+      <label for='identification' class='col-sm-2 col-form-label'>Email</label>
+      <div class='col'>
+        <Input
+          id='identification'
+          class='form-control'
+          placeholder='Enter email'
+          required
+          @type='email'
+          @value={{this.email}}
+        />
+      </div>
+    </div>
+    <div class='mb-3 row'>
+      <label for='password' class='col-sm-2 col-form-label'>Password</label>
+      <div class='col'>
+        <Input
+          id='password'
+          class='form-control'
+          placeholder='Enter Password'
+          required
+          @type='password'
+          @value={{this.password}}
+        />
+      </div>
+    </div>
+    <button type='submit' class='btn btn-primary'>Login</button>
+    {{#each this.errors as |error|}}
+      <div class='alert alert-warning' role='alert' style='margin: 10px 0;'>
+        {{error.detail}}
+      </div>
+    {{/each}}
+  </form>
+</div>

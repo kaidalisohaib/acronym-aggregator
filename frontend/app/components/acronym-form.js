@@ -12,8 +12,16 @@ export default class AcronymFormComponent extends Component {
   @tracked errors = [];
   @tracked canSubmit = false;
 
+  constructor(...args) {
+    super(...args);
+    if (this.args.readOnly) {
+      this.args.acronym.rollbackAttributes();
+    }
+  }
+
   @task
-  *submitChanges() {
+  *submitChanges(event) {
+    event.preventDefault();
     this.canSubmit = false;
     this.acronym = this.acronym ? this.acronym.trim() : '';
     this.meaning = this.meaning ? this.meaning.trim() : '';
@@ -44,13 +52,6 @@ export default class AcronymFormComponent extends Component {
         .catch((error) => {
           this.errors = error.errors;
         });
-    }
-  }
-
-  willDestroy() {
-    super.willDestroy(...arguments);
-    if (!this.args.readOnly) {
-      this.args.acronym.rollbackAttributes();
     }
   }
 }

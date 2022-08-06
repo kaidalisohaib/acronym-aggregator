@@ -38,13 +38,13 @@ export default class IndexController extends Controller {
       enabled: false,
     },
     {
-      name: 'last_modified_at',
-      property: 'last_modified_at',
+      name: 'last_modified_by',
+      property: 'last_modified_by',
       enabled: false,
     },
     {
-      name: 'last_modified_by',
-      property: 'last_modified_by',
+      name: 'last_modified_at',
+      property: 'last_modified_at',
       enabled: false,
     },
   ];

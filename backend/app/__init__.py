@@ -1,5 +1,6 @@
 from config import Config
 from flask import Flask
+from flask_jwt_extended import JWTManager
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_restful import Api
@@ -10,6 +11,7 @@ app.config.from_object(Config)
 db: SQLAlchemy = SQLAlchemy(app)
 migrate = Migrate(app, db)
 api = Api(app)
+jwt = JWTManager(app)
 ma: Marshmallow = Marshmallow(app)
 
 from app import models, routes

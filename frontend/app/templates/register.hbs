@@ -1,0 +1,67 @@
+{{page-title 'Register'}}
+<div class='container'>
+  <h1>Register:</h1>
+
+  <form {{on 'submit' (perform this.createAccount)}}>
+    <div class='mb-3 row'>
+      <label for='email1' class='col-sm-2 col-form-label'>Email</label>
+      <div class='col'>
+        <Input
+          id='email1'
+          class='form-control'
+          placeholder='Enter email'
+          required
+          @type='email'
+          @value={{this.email1}}
+        />
+      </div>
+    </div>
+    <div class='mb-3 row'>
+      <label for='email2' class='col-sm-2 col-form-label'>Email verification</label>
+      <div class='col'>
+        <Input
+          id='email2'
+          class='form-control'
+          placeholder='Repeat your email'
+          required
+          @type='email'
+          @value={{this.email2}}
+        />
+      </div>
+    </div>
+    <br />
+    <div class='mb-3 row'>
+      <label for='password1' class='col-sm-2 col-form-label'>Password</label>
+      <div class='col'>
+        <Input
+          id='password1'
+          class='form-control'
+          placeholder='Enter Password'
+          required
+          @type='password'
+          @value={{this.password1}}
+        />
+      </div>
+    </div>
+    <div class='mb-3 row'>
+      <label for='password2' class='col-sm-2 col-form-label'>Password
+        verification</label>
+      <div class='col'>
+        <Input
+          id='password2'
+          class='form-control'
+          placeholder='Repeat your password'
+          required
+          @type='password'
+          @value={{this.password2}}
+        />
+      </div>
+    </div>
+    <button type='submit' class='btn btn-primary'>Login</button>
+    {{#each this.errors as |error|}}
+      <div class='alert alert-warning' role='alert' style='margin: 10px 0;'>
+        {{error.detail}}
+      </div>
+    {{/each}}
+  </form>
+</div>

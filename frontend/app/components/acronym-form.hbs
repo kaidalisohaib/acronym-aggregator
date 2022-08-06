@@ -5,7 +5,7 @@
       <div class='alert alert-warning' role='alert'>{{error.detail}}</div>
     {{/each}}
   {{/unless}}
-  <form onsubmit='event.preventDefault();'>
+  <form {{on 'submit' (perform this.submitChanges)}}>
     {{!-- {{#if @readOnly}} --}}
     <div class='form-group'>
       <label for=''>ID</label>
@@ -148,7 +148,6 @@
         data-bs-toggle={{if this.canSubmit 'modal' ''}}
         data-bs-target={{if this.canSubmit '#acronymFormModal' ''}}
         disabled={{if this.canSubmit false true}}
-        {{on 'click' (perform this.submitChanges)}}
       >Submit</button>
       <div
         class='modal fade'
