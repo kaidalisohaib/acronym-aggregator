@@ -141,7 +141,7 @@
             disabled
             hidden
           >{{this.page}}</option>
-          {{#each (range 1 this.pages_count) as |index|}}
+          {{#each (range 1 this.page_count) as |index|}}
             <option value={{index}}>{{index}}</option>
           {{/each}}
         </select>

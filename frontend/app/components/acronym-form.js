@@ -14,8 +14,10 @@ export default class AcronymFormComponent extends Component {
 
   constructor(...args) {
     super(...args);
-    if (this.args.readOnly) {
-      this.args.acronym.rollbackAttributes();
+
+    if (this.args.acronym.hasDirtyAttributes && !this.args.acronym.isNew) {
+      console.log(this.args.acronym.changedAttributes());
+      window.location.reload();
     }
   }
 

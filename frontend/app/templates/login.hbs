@@ -1,7 +1,11 @@
 {{page-title 'Login'}}
 <div class='container'>
   <h1>Login:</h1>
-
+  <small>
+    <LinkTo @route='register' class='link-primary' target='_blank'>
+      Register
+    </LinkTo>
+  </small>
   <form {{on 'submit' (perform this.authenticate)}}>
     <div class='mb-3 row'>
       <label for='identification' class='col-sm-2 col-form-label'>Email</label>

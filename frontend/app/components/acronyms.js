@@ -11,7 +11,7 @@ export default class AcronymsComponent extends Component {
   @tracked acronyms = [];
   @tracked has_next = true;
   @tracked has_prev = false;
-  @tracked pages_count = 1;
+  @tracked page_count = 1;
   @tracked sorting_column = null;
   @tracked sorting_ascending = null;
   @taskGroup({ drop: true }) changes;
@@ -59,7 +59,7 @@ export default class AcronymsComponent extends Component {
       .then((results) => {
         this.has_next = results.meta.has_next;
         this.has_prev = results.meta.has_prev;
-        this.pages_count = results.meta.pages_count;
+        this.page_count = results.meta.page_count;
         this.acronyms = results;
       });
     yield timeout(150);
@@ -127,7 +127,7 @@ export default class AcronymsComponent extends Component {
   @task({ group: 'changes' })
   *last_page() {
     let last_page = this.page;
-    this.page = this.pages_count;
+    this.page = this.page_count;
     yield this.update.perform().catch(() => (this.page = last_page));
   }
 

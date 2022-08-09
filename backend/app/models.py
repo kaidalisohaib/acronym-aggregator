@@ -9,18 +9,58 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class User(db.Model):
+    """
+    # User table
+
+    ## Columns:
+    - id: Primary key.
+    - email: Unique String, contains email of the user.
+    - password_hash: String, contains hashed password of the user.
+    """
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(128))
 
-    def set_password(self, password):
+    def set_password(self, password: str) -> None:
+        """Set the password_hash column to the hash of the password.
+
+        Args:
+            password (str): The password to set.
+        """
+
         self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password) -> bool:
+    def check_password(self, password: str) -> bool:
+        """Check if the password is the correct user password.
+
+        Args:
+            password (str): Password to test.
+
+        Returns:
+            bool: True if it's correct, othersise False.
+        """
+
         return check_password_hash(self.password_hash, password)
 
 
 class Acronym(db.Model):
+    """
+    # Acronym table
+
+    ## Columns:
+    - id (int): Primary key.
+    - acronym (str): Non-nullable, the acronym.
+    - meaning (str): Non-nullable, the meaning of the acronym.
+    - comment (str): Nullable, a comment about the acronym.
+    - company (str): Non-nullable, the company the acronym belong to.
+    - created_at (datetime): Non-nullable, When was the acronym created in UTC.
+    - last_modified_at (datetime): Nullable, Last time the acronym was modified in UTC.
+    - created_by (str): Non-nullable, The email of the user that created the acronym.
+    - last_modified_by (str): Nullable, The email of the user that last
+      modified the acronym.
+    """
+
     id = db.Column(db.Integer, primary_key=True)
     acronym = db.Column(db.String(), nullable=False)
     meaning = db.Column(db.String(), nullable=False)
@@ -38,13 +78,17 @@ class Acronym(db.Model):
     created_user = db.relationship(User, foreign_keys=[created_by])
     modified_user = db.relationship(User, foreign_keys=[last_modified_by])
 
+    # Two acronym can't have the same acronym, meaning,
+    # comment and company at the same time
     __table_args__ = (
         UniqueConstraint(
             "acronym", "meaning", "comment", "company", name="acronym_info_uc"
         ),
     )
 
-    def __init__(self, acronym, meaning, comment, company, user: User) -> None:
+    def __init__(
+        self, acronym: str, meaning: str, comment: str, company: str, user: User
+    ) -> None:
         super().__init__()
         self.acronym = acronym
         self.meaning = meaning
@@ -52,7 +96,12 @@ class Acronym(db.Model):
         self.company = company
         self.created_by = user.email
 
-    def set_modified_user(self, user: User):
+    def set_modified_user(self, user: User) -> None:
+        """Change the last_modified_by to the user email.
+
+        Args:
+            user (User): The last user that changed the acronym.
+        """
         self.last_modified_by = user.email
 
     def __repr__(self) -> str:
@@ -60,9 +109,12 @@ class Acronym(db.Model):
 
 
 class Report(db.Model):
-    """Report table for versioning
+    """# Report table
 
-    The id represent the version, starting from 1.
+    ## Columns:
+    - id (int): The id and version of the report.
+    - created_at (datetime): When was the report created in UTC.
+    - zip_path (str): The absolute path of the generate zip file.
     """
 
     id = db.Column(db.Integer, primary_key=True)
@@ -79,12 +131,23 @@ class Report(db.Model):
         return "<Report id: {} zip_path: {}>".format(self.id, self.zip_path)
 
 
-def string_not_empty_validator(value):
-    if len(value.strip()) < 1:
+def string_not_empty_validator(string: str):
+    """Verify if a string is empty. Empty means that the length
+    is zero or that the string contains only white space.
+
+    Args:
+        string (str): String to test.
+
+    Raises:
+        ValidationError: If the string is empty.
+    """
+    if len(string.strip()) < 1:
         raise ValidationError("Field is empty or filled with spaces.")
 
 
 class AcronymSchema(Schema):
+    """Acronym schema to dump an Acronym instance into json:api format."""
+
     class Meta:
         type_ = "acronyms"
         model = Acronym
@@ -102,6 +165,8 @@ class AcronymSchema(Schema):
 
 
 class ReportSchema(Schema):
+    """Report schema to dump a Report instance into json:api format."""
+
     class Meta:
         type_ = "reports"
         model = Acronym
