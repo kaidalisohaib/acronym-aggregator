@@ -9,6 +9,9 @@ export default class ApplicationAdapter extends JSONAPIAdapter {
     return `${super.buildURL(...args)}`;
   }
 
+  /**
+   * Add the JWT token to the headers.
+   */
   get headers() {
     let headers = {};
     if (this.session.isAuthenticated) {
@@ -22,6 +25,11 @@ export default class ApplicationAdapter extends JSONAPIAdapter {
     return headers;
   }
 
+  /**
+   * If the status code is 422 or 401 we logout to get a new JWT token.
+   * @param {int} status Status code of the reponse.
+   * @returns If everything goes well return the response.
+   */
   handleResponse(status) {
     switch (status) {
       case 422:

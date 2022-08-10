@@ -1,5 +1,6 @@
 {{page-title 'Upload'}}
 <div class='container' style='max-width: 600px;'>
+  {{! All the rules to upload the file }}
   <div class='accordion' id='accordionRestrictions'>
     <div class='accordion-item'>
       <h2 class='accordion-header' id='accordionRestrictions-headingOne'>
@@ -77,10 +78,12 @@
     </div>
   </div>
   <h3>Upload CSV file</h3>
+  {{! File queue }}
   {{#let
     (file-queue name='csv_acronyms' onFileAdded=(perform this.uploadCSV))
     as |queue|
   }}
+    {{! Input file }}
     <div class='mb-3'>
       <input
         class='form-control'
@@ -89,6 +92,7 @@
         {{queue.selectFile}}
       />
     </div>
+    {{! Show a progress bar while the file is uploading }}
     {{#if queue.files.length}}
       <p>Uploading...</p>
       <div class='progress'>
@@ -104,11 +108,13 @@
       </div>
     {{/if}}
   {{/let}}
+  {{! Show the file of the last uploaded file }}
   {{#if this.lastUploadedFilename}}
     <div class='alert alert-info' role='alert' style='margin: 5px 0;'>
       {{this.lastUploadedFilename}}
     </div>
   {{/if}}
+  {{! Show the erros if there is some }}
   {{#if this.errors}}
     {{#each this.errors as |error|}}
       <div class='alert alert-warning' role='alert' style='margin: 5px 0;'>
@@ -116,6 +122,7 @@
       </div>
     {{/each}}
   {{/if}}
+  {{! Show some informations about the upload (added rows, skipped rows, total rows) }}
   {{#if this.totalRows}}
     <div class='alert alert-primary' role='alert' style='margin: 5px 0;'>
       <h4 class='alert-heading'>Added

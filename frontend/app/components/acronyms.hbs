@@ -1,4 +1,5 @@
 <div class='acronyms-div'>
+  {{! Div in top of the table }}
   <div class='d-flex justify-content-between'>
     {{! List of checkbox to show/hide the columns }}
     <div class='dropdown'>
@@ -10,6 +11,7 @@
       >
         Show/Hide Columns
       </button>
+      {{! List of button to show/hide }}
       <ul class='dropdown-menu' onclick='event.stopPropagation()'>
         {{#if this.columns}}
           {{#each this.columns as |column|}}
@@ -30,6 +32,7 @@
         {{/if}}
       </ul>
     </div>
+    {{! Button to update with the search queries }}
     <button
       class='btn btn-outline-success'
       type='button'
@@ -38,10 +41,7 @@
   </div>
   {{! Actual table being rendered }}
   <div class='table-responsive'>
-    <table
-      class='acronyms-table table table-hover table-striped'
-      style='min-width: 100%;'
-    >
+    <table class='acronyms-table table table-hover table-striped'>
       <thead>
         {{! ALL THE ENABLED HEADERS }}
         <tr>
@@ -69,7 +69,7 @@
             {{#each this.columns as |column|}}
               {{#if column.enabled}}
                 <th scope='col'>
-                  <div style='display: flex; input-group'>
+                  <div class='input-group' style='display: flex;'>
                     <Input
                       @type='text'
                       style='width: calc(100% - 30px);'
@@ -91,6 +91,7 @@
           {{/if}}
         </tr>
       </thead>
+      {{! All the acronyms }}
       <tbody>
         {{#if this.acronyms}}
           {{#each this.acronyms as |acronym|}}
@@ -100,20 +101,20 @@
       </tbody>
     </table>
   </div>
+  {{! Show a spinner if update is running }}
   <div class='d-flex justify-content-center'>
     <div
       class='spinner-border text-primary'
-      style='width: 3rem; height: 3rem; visibility:{{if
-        this.update.isRunning
-        "visible"
-        "hidden"
-      }};'
+      style='width: 3rem; height: 3rem; '
+      hidden={{(not this.update.isRunning)}}
       role='status'
     >
     </div>
   </div>
+  {{! Bottom of the table }}
   <div style='display: flex;justify-content: space-between;'>
     <div class='input-group' style='width: auto;'>
+      {{! User can change the number of rows }}
       <label class='input-group-text'>Rows:</label>
       <select
         class='form-control'
@@ -128,10 +129,10 @@
         <option value='10'>10</option>
         <option value='25'>25</option>
         <option value='50'>50</option>
-        {{! <option value='-1'>All</option> }}
       </select>
     </div>
     <div style='display: flex;'>
+      {{! User can select a specific page }}
       <div class='input-group'>
         <label class='input-group-text'>Page:</label>
         <select class='form-control' {{on 'change' (perform this.changePage)}}>
@@ -147,24 +148,28 @@
         </select>
       </div>
       <div class='btn-group'>
+        {{! First page }}
         <button
           class='btn btn-secondary'
           disabled={{if this.has_prev false true}}
           type='button'
           {{on 'click' (perform this.first_page)}}
         >&lt;&lt;</button>
+        {{! Previous page }}
         <button
           class='btn btn-secondary'
           disabled={{if this.has_prev false true}}
           type='button'
           {{on 'click' (perform this.prev_page)}}
         >&lt;</button>
+        {{! Next page }}
         <button
           class='btn btn-secondary'
           disabled={{if this.has_next false true}}
           type='button'
           {{on 'click' (perform this.next_page)}}
         >&gt;</button>
+        {{! Last page }}
         <button
           class='btn btn-secondary'
           disabled={{if this.has_next false true}}

@@ -1,12 +1,14 @@
 <div class='acronym-form'>
   <p>{{this.elementId}}</p>
+  {{! If we are NOT in readonly we show the error messages from the response  }}
   {{#unless @readOnly}}
     {{#each this.errors as |error|}}
       <div class='alert alert-warning' role='alert'>{{error.detail}}</div>
     {{/each}}
   {{/unless}}
+  {{! In readonly every field is not editable }}
   <form {{on 'submit' (perform this.submitChanges)}}>
-    {{!-- {{#if @readOnly}} --}}
+    {{! Not editable }}
     <div class='form-group'>
       <label for=''>ID</label>
       <input
@@ -17,7 +19,7 @@
         value={{@acronym.id}}
       />
     </div>
-    {{!  }}
+    {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
       <label for=''>Acronym</label>
       <input
@@ -37,6 +39,7 @@
         }}
       />
     </div>
+    {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
       <label for=''>Meaning</label>
       <input
@@ -56,6 +59,7 @@
         }}
       />
     </div>
+    {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
       <label for=''>Comment</label>
       <textarea
@@ -76,6 +80,7 @@
         }}
       ></textarea>
     </div>
+    {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
       <label for=''>Company</label>
       <input
@@ -95,10 +100,7 @@
         }}
       />
     </div>
-    {{!  }}
-    {{!  }}
-    {{!  }}
-    {{!  }}
+    {{! Not editable }}
     <div class='form-group'>
       <label for=''>Created by</label>
       <input
@@ -109,6 +111,7 @@
         value={{@acronym.created_by}}
       />
     </div>
+    {{! Not editable }}
     <div class='form-group'>
       <label for=''>Created at (UTC)</label>
       <input
@@ -119,7 +122,7 @@
         value={{@acronym.created_at}}
       />
     </div>
-    <p>{{@acronym.created_at}}</p>
+    {{! Not editable }}
     <div class='form-group'>
       <label for=''>Last modified by</label>
       <input
@@ -130,6 +133,7 @@
         value={{@acronym.last_modified_by}}
       />
     </div>
+    {{! Not editable }}
     <div class='form-group'>
       <label for=''>Last modified at (UTC)</label>
       <input
@@ -140,15 +144,16 @@
         value={{@acronym.last_modified_at}}
       />
     </div>
+    {{! If we are not in readonly we show a submit button }}
     {{#unless @readOnly}}
       <button
-        style='width: 100%;'
-        class='btn btn-primary'
+        class='btn btn-primary w-100'
         type='submit'
         data-bs-toggle={{if this.canSubmit 'modal' ''}}
         data-bs-target={{if this.canSubmit '#acronymFormModal' ''}}
         disabled={{if this.canSubmit false true}}
       >Submit</button>
+      {{! If the submit button is pressed we show a confirmation modal. }}
       <div
         class='modal fade'
         id='acronymFormModal'

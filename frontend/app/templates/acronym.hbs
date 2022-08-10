@@ -3,19 +3,28 @@
 <div class='container'>
   <h1>Acronym</h1>
   <AcronymForm @acronym={{@model}} @readOnly={{true}} />
+  {{! Show a button to edit this acronym }}
   <LinkTo
     @route='authenticated.edit'
     @model={{@model}}
     class='btn btn-success'
     role='button'
   >Edit</LinkTo>
+  {{! Show a delete button }}
+  {{! If the user is NOT authenticated we disable the button }}
   <button
     style='margin-top: 10px;'
     class='btn btn-outline-danger'
     data-bs-toggle='modal'
     data-bs-target='#deleteModal'
     type='button'
-  >Delete</button>
+    disabled={{if this.session.isAuthenticated false true}}
+  >Delete
+    {{#unless this.session.isAuthenticated}}
+      <b>(Require logging in)</b>
+    {{/unless}}
+  </button>
+  {{! This is the confirmation to delete the acronym }}
   <div
     class='modal fade'
     id='deleteModal'
@@ -35,9 +44,6 @@
             aria-label='Close'
           ></button>
         </div>
-        {{! <div class='modal-body'> }}
-        {{! <h2>Are you sure you want to delete this acronym ?</h2> }}
-        {{! </div> }}
         <div class='modal-footer'>
           <button
             type='button'

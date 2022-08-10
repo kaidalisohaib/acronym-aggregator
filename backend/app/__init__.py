@@ -12,13 +12,14 @@ migrate = Migrate(app, db)
 api = Api(app)
 jwt = JWTManager(app)
 
-
+# Import the models so the db can create the tables
 from app import models
 
 db.create_all()
 db.session.commit()
 
 from app.models import User
+from app.ressources import errors
 
 
 # Setting up jwt identity loader so that JWTManager can get the current user
@@ -34,9 +35,9 @@ def user_lookup_callback(_jwt_header, jwt_data):
     return User.query.get(identity)
 
 
+# Add all the resource and route
 from app.ressources.acronym import AcronymResource
 from app.ressources.acronyms import AcronymsListResource
-from app.ressources.errors import handle_error
 from app.ressources.login_register import LoginResource, RegisterResource
 from app.ressources.report import ReportResource
 from app.ressources.reports import ReportsListResource

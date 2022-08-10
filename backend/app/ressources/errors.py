@@ -16,7 +16,7 @@ def handle_error(err):
                 errors.append({"status": UNPROCESSABLE_ENTITY, "detail": message})
     else:
         errors.append({"status": UNPROCESSABLE_ENTITY, "detail": "Invalid request."})
-    print(err)
+
     if headers:
         return jsonify({"errors": errors}), err.code, headers
     else:

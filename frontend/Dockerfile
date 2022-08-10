@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
 FROM node:16.16.0
 
+## Add the wait script to the image
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
+
 WORKDIR /ember-app
 
 RUN \
@@ -42,7 +46,8 @@ RUN npm install && npm cache clean --force
 COPY . .
 
 # run ember server on container start
-ENTRYPOINT ["ember", "serve"]
+# ENTRYPOINT ["ember", "serve"]
+CMD /wait && ember server
 
 # ember server on port 4200
 # livereload server on port 7020 (changed in v2.17.0 from 49153)

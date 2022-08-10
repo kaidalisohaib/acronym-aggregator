@@ -11,10 +11,10 @@ Router.map(function () {
   this.route('acronym', { path: '/acronyms/:acronym_id' });
   this.route('login');
   this.route('register');
+  this.route('reports');
   this.route('authenticated', { path: '/auth' }, function () {
     this.route('edit', { path: '/edit/:acronym_id' });
     this.route('create');
-    this.route('reports');
     this.route('upload');
   });
 });

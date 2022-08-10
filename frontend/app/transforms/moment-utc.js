@@ -1,5 +1,8 @@
 import Transform from '@ember-data/serializer/transform';
 import moment from 'moment';
+/**
+ * This transform is to set everything in UTC time.
+ */
 export default class MomentUTCTransform extends Transform {
   deserialize(serialized) {
     return serialized

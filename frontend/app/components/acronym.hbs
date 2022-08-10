@@ -1,3 +1,4 @@
+{{! A row with the enabled columns }}
 <tr class='acronym-row'>
   {{#each @columns as |column|}}
     {{#if column.enabled}}
@@ -8,7 +9,6 @@
           </LinkTo>
         </th>
       {{else}}
-        {{! <td style="max-width: 1px;"> }}
         <td>
           {{get @acronym column.property}}
         </td>

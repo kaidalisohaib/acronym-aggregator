@@ -69,14 +69,14 @@ class UploadCSVResource(Resource):
         # Each row that isn't getting added is marked as skipped
         for index, row in enumerate(rows):
             if len(row) < 4:
-                skipped_rows.append(index)
+                skipped_rows.append(index + 1)
                 continue
             if (
                 string_is_empty(row[0])
                 or string_is_empty(row[1])
                 or string_is_empty(row[3])
             ):
-                skipped_rows.append(index)
+                skipped_rows.append(index + 1)
                 continue
             try:
                 new_acronym = Acronym(row[0], row[1], row[2], row[3], current_user)
@@ -84,7 +84,7 @@ class UploadCSVResource(Resource):
                 db.session.commit()
                 added_rows += 1
             except IntegrityError:
-                skipped_rows.append(index)
+                skipped_rows.append(index + 1)
                 db.session.rollback()
         file_data.close()
 

@@ -1,11 +1,18 @@
 {{page-title 'Reports'}}
 <div class='container'>
+  {{! Button to create a report }}
+  {{! If the user is not autenticated the button is disabled }}
   <button
     class='btn btn-success'
     data-bs-toggle='modal'
     data-bs-target='#reportModal'
     type='button'
-  >Create new report</button>
+    disabled={{if this.session.isAuthenticated false true}}
+  >Create new report
+    {{#unless this.session.isAuthenticated}}
+      <b>(Require logging in)</b>
+    {{/unless}}</button>
+  {{! List of all reports with their version and for how long it's been created }}
   <h1 style='margin-bottom: 20px;'>All reports:</h1>
   <div class='list-group' style='flex-direction:column-reverse'>
     {{#if @model}}
@@ -19,6 +26,7 @@
           <h3 style='margin: 0px 10px;'>{{moment-from-now
               (utc report.created_at)
             }}</h3>
+          {{! Donwload button to download the zip file }}
           <button
             class='btn btn btn-outline-success'
             type='button'
@@ -33,6 +41,7 @@
     {{/if}}
   </div>
 </div>
+{{! This is the confirmation to create a new report }}
 <div
   class='modal fade'
   id='reportModal'

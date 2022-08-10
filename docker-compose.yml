@@ -16,6 +16,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
   backend:
+    environment:
+      WAIT_HOSTS: postgres:5432
     env_file:
       - ./backend/.env
     build:
@@ -28,6 +30,8 @@ services:
     depends_on:
       - postgres
   frontend:
+    environment:
+      WAIT_HOSTS: backend:5000
     build:
       context: ./frontend
     volumes:
