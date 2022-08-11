@@ -48,8 +48,8 @@ export default class AcronymsComponent extends Component {
 
   /**
    * This function fetchs the data from the backend with all
-   * the parameters needed and is called when we press search
-   * or when we change the sorting.
+   * the parameters needed and is called when we press search,
+   * when we change the sorting and change page settings.
    */
   @task({ drop: true })
   *update() {

@@ -1,12 +1,21 @@
-from config import Config
+from http.client import UNAUTHORIZED
+
+from config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
-from flask_restful import Api
+from flask_restful import Api, abort
 from flask_sqlalchemy import SQLAlchemy
 
 app: Flask = Flask(__name__)
-app.config.from_object(Config)
+# Choosing which config class to load
+if Config.FLASK_ENV == "development":
+    app.config.from_object(DevelopmentConfig)
+elif Config.FLASK_ENV == "production":
+    app.config.from_object(ProductionConfig)
+else:
+    app.config.from_object(TestingConfig)
+
 db: SQLAlchemy = SQLAlchemy(app)
 migrate = Migrate(app, db)
 api = Api(app)
@@ -32,7 +41,13 @@ def user_identity_lookup(user):
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
-    return User.query.get(identity)
+    user = User.query.get(identity)
+    if not user:
+        abort(
+            UNAUTHORIZED,
+            errors=[{"status": UNAUTHORIZED, "detail": "User doesn't exist."}],
+        )
+    return user
 
 
 # Add all the resource and route

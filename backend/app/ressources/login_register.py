@@ -106,7 +106,7 @@ class LoginResource(Resource):
         # If the user doesn't exists or if the password isn't correct we abort.
         if not user:
             abort(
-                UNAUTHORIZED,
+                NOT_FOUND,
                 errors=[{"status": NOT_FOUND, "detail": "User email doesn't exist."}],
             )
         if not user.check_password(password):

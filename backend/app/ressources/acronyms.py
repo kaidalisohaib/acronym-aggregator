@@ -23,13 +23,13 @@ class AcronymsListResource(Resource):
                 validate=validate.Range(min=1), required=False
             ),
             "page": fields.Int(
-                missing=1, validate=validate.Range(min=1), required=False
+                load_default=1, validate=validate.Range(min=1), required=False
             ),
             "sorting[column]": fields.Str(
                 validate=validate.OneOf(choices=Acronym.__table__.columns.keys()),
                 required=False,
             ),
-            "sorting[ascending]": fields.Bool(missing=True, required=False),
+            "sorting[ascending]": fields.Bool(load_default=True, required=False),
             "filter[id]": fields.Int(validate=validate.Range(min=1), required=False),
             "filter[acronym]": fields.Str(
                 validate=validate.Length(min=1), required=False
@@ -128,10 +128,10 @@ class AcronymsListResource(Resource):
         attributes = request.json["data"]["attributes"]
         # Create the new acronym
         new_acronym = Acronym(
-            attributes["acronym"],
-            attributes["meaning"],
-            attributes["comment"],
-            attributes["company"],
+            attributes.get("acronym"),
+            attributes.get("meaning"),
+            attributes.get("comment", None),
+            attributes.get("company"),
             current_user,
         )
         db.session.add(new_acronym)
