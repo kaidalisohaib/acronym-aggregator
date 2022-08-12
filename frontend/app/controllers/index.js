@@ -13,55 +13,46 @@ export default class IndexController extends Controller {
       name: 'ID',
       property: 'id',
       enabled: true,
-      query: null,
     },
     {
       name: 'acronym',
       property: 'acronym',
       enabled: true,
-      query: null,
     },
     {
       name: 'meaning',
       property: 'meaning',
       enabled: true,
-      query: null,
     },
     {
       name: 'comment',
       property: 'comment',
       enabled: true,
-      query: null,
     },
     {
       name: 'company',
       property: 'company',
       enabled: true,
-      query: null,
     },
     {
       name: 'created_by',
       property: 'created_by',
       enabled: false,
-      query: null,
     },
     {
       name: 'created_at',
       property: 'created_at',
       enabled: false,
-      query: null,
     },
     {
       name: 'last_modified_by',
       property: 'last_modified_by',
       enabled: false,
-      query: null,
     },
     {
       name: 'last_modified_at',
       property: 'last_modified_at',
       enabled: false,
-      query: null,
     },
   ];
 }

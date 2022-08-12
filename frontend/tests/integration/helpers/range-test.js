@@ -12,10 +12,6 @@ module('Integration | Helper | range', function (hooks) {
     this.set('end', '10');
 
     await render(hbs`{{range this.start this.end}}`);
-    assert.dom(this.element).containsText('1,');
-    assert.dom(this.element).containsText('2,');
-    assert.dom(this.element).containsText('5,');
-    assert.dom(this.element).containsText('9,');
-    assert.dom(this.element).containsText('10,');
+    assert.dom(this.element).hasText('1,2,3,4,5,6,7,8,9,10');
   });
 });

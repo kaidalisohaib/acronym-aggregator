@@ -5,7 +5,7 @@ module('Unit | Route | upload', function (hooks) {
   setupTest(hooks);
 
   test('it exists', function (assert) {
-    let route = this.owner.lookup('route:upload');
+    let route = this.owner.lookup('route:authenticated.upload');
     assert.ok(route);
   });
 });

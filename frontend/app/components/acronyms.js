@@ -31,7 +31,7 @@ export default class AcronymsComponent extends Component {
     let { columns } = this.args;
     // If a column is not enabled we remove the query.
     columns.forEach((column) => {
-      if (!column.enabled) {
+      if (!column.enabled || !('query' in column)) {
         column.query = null;
       }
     });
