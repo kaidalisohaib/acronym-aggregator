@@ -15,18 +15,16 @@
       <ul class='dropdown-menu' onclick='event.stopPropagation()'>
         {{#if this.columns}}
           {{#each this.columns as |column|}}
-            <li>
-              <button
-                class='dropdown-item'
-                type='button'
+            <li class='dropdown-item'>
+              <input
+                id={{concat this.elementId '-column-toggle-' column.property}}
+                type='checkbox'
+                checked={{if column.enabled true false}}
                 {{on 'click' (perform this.toggleColumn column)}}
-              >
-                <input
-                  type='checkbox'
-                  checked={{if column.enabled true false}}
-                />
-                {{column.name}}
-              </button>
+              />
+              <label
+                for={{concat this.elementId '-column-toggle-' column.property}}
+              >{{column.name}}</label>
             </li>
           {{/each}}
         {{/if}}
@@ -69,18 +67,21 @@
             {{#each this.columns as |column|}}
               {{#if column.enabled}}
                 <th scope='col'>
-                  <div class='input-group' style='display: flex;'>
+                  <div class='input-group d-flex'>
+                    <label
+                      for={{concat this.elementId '-query-' column.property}}
+                      hidden
+                    >{{column.property}} query</label>
                     <Input
+                      id={{concat this.elementId '-query-' column.property}}
                       @type='text'
-                      style='width: calc(100% - 30px);'
                       @value={{column.query}}
-                      class='form-control'
+                      class='form-control query-text'
                       {{on 'keypress' this.handleEnterKeyQuery}}
                     />
                     <button
-                      style='width: 30px;'
                       disabled={{if column.query false true}}
-                      class='btn btn-outline-primary'
+                      class='btn btn-outline-primary query-button'
                       type='button'
                       {{on 'click' (perform this.clearQuery column)}}
                     >X</button>
@@ -105,18 +106,21 @@
   <div class='d-flex justify-content-center'>
     <div
       class='spinner-border text-primary'
-      style='width: 3rem; height: 3rem; '
       hidden={{(not this.update.isRunning)}}
       role='status'
     >
     </div>
   </div>
   {{! Bottom of the table }}
-  <div style='display: flex;justify-content: space-between;'>
-    <div class='input-group' style='width: auto;'>
+  <div class='d-flex justify-content-between'>
+    <div class='input-group d-per-page-container'>
       {{! User can change the number of rows }}
-      <label class='input-group-text'>Rows:</label>
+      <label
+        for={{concat this.elementId '-n-row'}}
+        class='input-group-text'
+      >Rows:</label>
       <select
+        id={{concat this.elementId '-n-row'}}
         class='form-control'
         {{on 'change' (perform this.changeDisplayPerPage)}}
       >
@@ -131,11 +135,18 @@
         <option value='50'>50</option>
       </select>
     </div>
-    <div style='display: flex;'>
+    <div class='d-flex'>
       {{! User can select a specific page }}
       <div class='input-group'>
-        <label class='input-group-text'>Page:</label>
-        <select class='form-control' {{on 'change' (perform this.changePage)}}>
+        <label
+          for={{concat this.elementId '-page'}}
+          class='input-group-text'
+        >Page:</label>
+        <select
+          id={{concat this.elementId '-page'}}
+          class='form-control'
+          {{on 'change' (perform this.changePage)}}
+        >
           <option
             value={{this.page}}
             selected={{if this.page 'true' 'false'}}

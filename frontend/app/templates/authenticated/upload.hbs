@@ -1,5 +1,5 @@
 {{page-title 'Upload'}}
-<div class='container' style='max-width: 600px;'>
+<div class='container upload-container'>
   {{! All the rules to upload the file }}
   <div class='accordion' id='accordionRestrictions'>
     <div class='accordion-item'>
@@ -85,7 +85,9 @@
   }}
     {{! Input file }}
     <div class='mb-3'>
+      <label for='input-upload' hidden>upload input</label>
       <input
+        id='input-upload'
         class='form-control'
         type='file'
         accept='text/csv'
@@ -110,21 +112,21 @@
   {{/let}}
   {{! Show the file of the last uploaded file }}
   {{#if this.lastUploadedFilename}}
-    <div class='alert alert-info' role='alert' style='margin: 5px 0;'>
+    <div class='alert alert-info upload-info' role='alert'>
       {{this.lastUploadedFilename}}
     </div>
   {{/if}}
   {{! Show the erros if there is some }}
   {{#if this.errors}}
     {{#each this.errors as |error|}}
-      <div class='alert alert-warning' role='alert' style='margin: 5px 0;'>
+      <div class='alert alert-warning upload-info' role='alert'>
         {{error.detail}}
       </div>
     {{/each}}
   {{/if}}
   {{! Show some informations about the upload (added rows, skipped rows, total rows) }}
   {{#if this.totalRows}}
-    <div class='alert alert-primary' role='alert' style='margin: 5px 0;'>
+    <div class='alert alert-primary upload-info' role='alert'>
       <h4 class='alert-heading'>Added
         {{this.addedRows}}/{{this.totalRows}}
         rows</h4>
@@ -132,12 +134,10 @@
         <hr />
         <h4 class='alert-heading'>Skipped rows:</h4>
         <hr />
-        <div
-          style='display: flex; max-width: 600px; flex-direction: row; align-content: center; gap: 10px;flex-wrap: wrap;'
-        >
+        <div class='d-flex flex-row align-content-center flex-wrap'>
           {{#each this.skippedRows as |rowNumber|}}
             <h4>
-              <span class='badge text-bg-light' style='width: fit-content;'>
+              <span class='badge text-bg-light row-number'>
                 {{rowNumber}}
               </span>
             </h4>

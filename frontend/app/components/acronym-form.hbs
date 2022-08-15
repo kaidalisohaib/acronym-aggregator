@@ -1,5 +1,4 @@
 <div class='acronym-form'>
-  <p>{{this.elementId}}</p>
   {{! If we are NOT in readonly we show the error messages from the response  }}
   {{#unless @readOnly}}
     {{#each this.errors as |error|}}
@@ -10,8 +9,9 @@
   <form {{on 'submit' (perform this.submitChanges)}}>
     {{! Not editable }}
     <div class='form-group'>
-      <label for=''>ID</label>
+      <label for={{concat this.elementId '-input-id'}}>ID</label>
       <input
+        id={{concat this.elementId '-input-id'}}
         type='number'
         class='form-control'
         readonly={{@readOnly}}
@@ -21,8 +21,9 @@
     </div>
     {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
-      <label for=''>Acronym</label>
+      <label for={{concat this.elementId '-input-acronym'}}>Acronym</label>
       <input
+        id={{concat this.elementId '-input-acronym'}}
         type='text'
         class='form-control'
         readonly={{@readOnly}}
@@ -41,8 +42,9 @@
     </div>
     {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
-      <label for=''>Meaning</label>
+      <label for={{concat this.elementId '-input-meaning'}}>Meaning</label>
       <input
+        id={{concat this.elementId '-input-meaning'}}
         type='text'
         class='form-control'
         readonly={{@readOnly}}
@@ -61,8 +63,9 @@
     </div>
     {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
-      <label for=''>Comment</label>
+      <label for={{concat this.elementId '-input-comment'}}>Comment</label>
       <textarea
+        id={{concat this.elementId '-input-comment'}}
         type='text'
         class='form-control'
         rows='4'
@@ -82,8 +85,9 @@
     </div>
     {{! If we are not in readonly it's editable and each time the user types we send the event }}
     <div class='form-group'>
-      <label for=''>Company</label>
+      <label for={{concat this.elementId '-input-company'}}>Company</label>
       <input
+        id={{concat this.elementId '-input-company'}}
         type='text'
         class='form-control'
         readonly={{@readOnly}}
@@ -102,8 +106,9 @@
     </div>
     {{! Not editable }}
     <div class='form-group'>
-      <label for=''>Created by</label>
+      <label for={{concat this.elementId '-input-created_by'}}>Created by</label>
       <input
+        id={{concat this.elementId '-input-created_by'}}
         type='text'
         class='form-control'
         readonly={{@readOnly}}
@@ -113,8 +118,9 @@
     </div>
     {{! Not editable }}
     <div class='form-group'>
-      <label for=''>Created at (UTC)</label>
+      <label for={{concat this.elementId '-input-created_at'}}>Created at (UTC)</label>
       <input
+        id={{concat this.elementId '-input-created_at'}}
         type='datetime-local'
         class='form-control'
         readonly={{@readOnly}}
@@ -124,8 +130,10 @@
     </div>
     {{! Not editable }}
     <div class='form-group'>
-      <label for=''>Last modified by</label>
+      <label for={{concat this.elementId '-input-last_modified_by'}}>Last
+        modified by</label>
       <input
+        id={{concat this.elementId '-input-last_modified_by'}}
         type='text'
         class='form-control'
         readonly={{@readOnly}}
@@ -135,8 +143,10 @@
     </div>
     {{! Not editable }}
     <div class='form-group'>
-      <label for=''>Last modified at (UTC)</label>
+      <label for={{concat this.elementId '-input-last_modified_at'}}>Last
+        modified at (UTC)</label>
       <input
+        id={{concat this.elementId '-input-last_modified_at'}}
         type='datetime-local'
         class='form-control'
         readonly={{@readOnly}}
@@ -161,7 +171,7 @@
         aria-labelledby='acronymFormModalLabel'
         aria-hidden='true'
       >
-        <div class='modal-dialog' style='max-width: 1000px;'>
+        <div class='modal-dialog'>
           <div class='modal-content'>
             <div class='modal-header'>
               <h5

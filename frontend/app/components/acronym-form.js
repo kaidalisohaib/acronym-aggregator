@@ -2,6 +2,7 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { task } from 'ember-concurrency';
 import { service } from '@ember/service';
+import { guidFor } from '@ember/object/internals';
 
 export default class AcronymFormComponent extends Component {
   @service router;
@@ -11,6 +12,7 @@ export default class AcronymFormComponent extends Component {
   @tracked company = this.args.acronym.company;
   @tracked errors = [];
   @tracked canSubmit = false;
+  elementId = 'acronym-form-' + guidFor(this);
 
   /**
    * If the user started editing an acronym and went back to the

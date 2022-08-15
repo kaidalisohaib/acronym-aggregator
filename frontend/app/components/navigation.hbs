@@ -17,34 +17,34 @@
     <div class='collapse navbar-collapse' id='navbarSupportedContent'>
       <ul class='navbar-nav me-auto mb-2 mb-lg-0'>
         {{! Link to Create a new acronym }}
-        <li class='nav-item' style='margin: 5px;'>
+        <li class='nav-item'>
           <LinkTo
             @route='authenticated.create'
             role='button'
             class='btn btn-outline-success'
             aria-current='page'
             target='_blank'
-          ><b>Create New Acronym</b></LinkTo>
+          >Create New Acronym</LinkTo>
         </li>
         {{! Link to the Reports route }}
-        <li class='nav-item' style='margin: 5px;'>
+        <li class='nav-item'>
           <LinkTo
             @route='reports'
             role='button'
             class='btn btn-outline-danger'
             aria-current='page'
             target='_blank'
-          ><b>Reports</b></LinkTo>
+          >Reports</LinkTo>
         </li>
         {{! Link to the Upload route }}
-        <li class='nav-item' style='margin: 5px;'>
+        <li class='nav-item'>
           <LinkTo
             @route='authenticated.upload'
             role='button'
             class='btn btn-outline-info'
             aria-current='page'
             target='_blank'
-          ><b>Upload</b></LinkTo>
+          >Upload</LinkTo>
         </li>
       </ul>
       <div class='d-flex'>
@@ -54,22 +54,22 @@
             class='btn btn-danger'
             type='button'
             {{on 'click' this.logout}}
-          ><b>Logout</b></button>
+          >Logout</button>
           {{! Else show the logout button }}
         {{else}}
           <LinkTo
+            id='register-link'
             @route='register'
             role='button'
             class='btn btn-success'
             aria-current='page'
-            style='margin-right: 10px;'
-          ><b>Register</b></LinkTo>
+          >Register</LinkTo>
           <LinkTo
             @route='login'
             role='button'
             class='btn btn-success'
             aria-current='page'
-          ><b>Login</b></LinkTo>
+          >Login</LinkTo>
         {{/if}}
       </div>
     </div>

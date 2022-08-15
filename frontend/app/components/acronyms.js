@@ -3,6 +3,8 @@ import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { task, taskGroup, timeout } from 'ember-concurrency';
 import { action } from '@ember/object';
+import { guidFor } from '@ember/object/internals';
+
 /**
  * Table with multiple functionalities.
  * Filter by column: Contains the text.
@@ -20,6 +22,7 @@ export default class AcronymsComponent extends Component {
   @tracked sorting_ascending = null;
   @taskGroup({ drop: true }) changes;
   searchQueryWasEmpty = false;
+  elementId = 'acronym-form-' + guidFor(this);
 
   /**
    * Set the component arguments to variables and update

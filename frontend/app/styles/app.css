@@ -1,3 +1,7 @@
+h1 {
+  margin-bottom: 20px;
+}
+
 .container {
   display: flex;
   max-width: 1000px;
@@ -6,6 +10,64 @@
   align-content: center;
 }
 
+.upload-container {
+  max-width: 600px;
+}
+
+.upload-info {
+  margin: 5px 0;
+}
+
+.upload-skipped-info {
+  max-width: 600px;
+  gap: 10px;
+}
+
+.row-number {
+  width: fit-content;
+}
+
 .form-group {
   margin-bottom: 10px;
+}
+
+.modal-dialog {
+  max-width: 1000px !important;
+}
+
+.query-text {
+  width: calc(100% - 30px);
+}
+
+.query-button {
+  width: 30px;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.d-per-page-container {
+  width: auto !important;
+}
+
+.nav-item {
+  margin: 5px;
+}
+
+.form-account-warning {
+  margin: 10px 0;
+}
+
+.report-created-at {
+  margin: 0px 10px;
+}
+
+#register-link {
+  margin-right: 10px !important;
+}
+
+.p10-margin-top {
+  margin-top: 10px !important;
 }

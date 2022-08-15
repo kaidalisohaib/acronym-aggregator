@@ -1,0 +1,57 @@
+name: Tests
+
+on: [push]
+jobs:
+  test:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    name: Build docker-compose images
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: "Create env file"
+        working-directory: ./backend
+        run: |
+          touch .env
+          echo FLASK_APP=acronym_aggregator.py >> .env
+          echo FLASK_ENV='development' >> .env
+          echo FLASK_SECRET_KEY='' >> .env
+          echo JWT_SECRET_KEY='' >> .env
+          echo JWT_ACCESS_TOKEN_EXPIRES=259200 #259,200 seconds equivalent for 3 days >> .env
+          echo SQLALCHEMY_TRACK_MODIFICATIONS=False >> .env
+          echo REPORTS_FOLDER='/flask-app/app/static/reports' >> .env
+          echo UPLOAD_FOLDER='/flask-app/uploads' >> .env
+          echo ALLOWED_EXTENSIONS='csv' >> .env
+
+          echo DEV_POSTGRES_USER='acronym_dev' >> .env
+          echo DEV_POSTGRES_PW='postgrespw' >> .env
+          echo DEV_POSTGRES_URL='postgres:5432' >> .env
+          echo DEV_POSTGRES_DB='acronym_dev' >> .env
+
+          echo TESTING_POSTGRES_USER='acronym_test' >> .env
+          echo TESTING_POSTGRES_PW='postgrespw' >> .env
+          echo TESTING_POSTGRES_URL='postgres-test:5432' >> .env
+          echo TESTING_POSTGRES_DB='acronym_test' >> .env
+          cat .env
+
+      - name: Start containers
+        run: docker compose -f "docker-compose.yml" up -d --build
+
+      - name: Check running containers
+        run: docker ps
+
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
+      - name: Run backend test suite
+        run: docker exec backend pytest
+
+      - name: Run frontend test suite
+        run: docker exec frontend npm test
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f "docker-compose.yml" down
