@@ -17,9 +17,9 @@ jobs:
           touch .env
           echo FLASK_APP=acronym_aggregator.py >> .env
           echo FLASK_ENV='development' >> .env
-          echo FLASK_SECRET_KEY='' >> .env
-          echo JWT_SECRET_KEY='' >> .env
-          echo JWT_ACCESS_TOKEN_EXPIRES=259200 #259,200 seconds equivalent for 3 days >> .env
+          echo FLASK_SECRET_KEY='must be changed' >> .env
+          echo JWT_SECRET_KEY='must be changed' >> .env
+          echo JWT_ACCESS_TOKEN_EXPIRES=259200 >> .env
           echo SQLALCHEMY_TRACK_MODIFICATIONS=False >> .env
           echo REPORTS_FOLDER='/flask-app/app/static/reports' >> .env
           echo UPLOAD_FOLDER='/flask-app/uploads' >> .env
@@ -34,6 +34,12 @@ jobs:
           echo TESTING_POSTGRES_PW='postgrespw' >> .env
           echo TESTING_POSTGRES_URL='postgres-test:5432' >> .env
           echo TESTING_POSTGRES_DB='acronym_test' >> .env
+
+          echo PROD_POSTGRES_USER= >> .env
+          echo PROD_POSTGRES_PW= >> .env
+          echo PROD_POSTGRES_URL= >> .env
+          echo PROD_POSTGRES_DB= >> .env
+
           cat .env
 
       - name: Start containers

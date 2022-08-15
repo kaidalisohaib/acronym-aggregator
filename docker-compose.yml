@@ -46,8 +46,6 @@ services:
     volumes:
       - ./frontend:/ember-app
       - exclude:/ember-app/node_modules
-    tmpfs:
-      - /ember-app/tmp
     ports:
       - "4200:4200"
       - "7020:7020"
