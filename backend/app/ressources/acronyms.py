@@ -20,7 +20,7 @@ class AcronymsListResource(Resource):
     @use_args(
         {
             "display_per_page": fields.Int(
-                validate=validate.Range(min=1), required=False
+                validate=validate.Range(min=-1), required=False
             ),
             "page": fields.Int(
                 load_default=1, validate=validate.Range(min=1), required=False
@@ -94,7 +94,7 @@ class AcronymsListResource(Resource):
         acronyms = []
         metadata = {}
         query_object = build_acronyms_filter_sort_query(args)
-        if "display_per_page" in args:
+        if "display_per_page" in args and args["display_per_page"] > 0:
             page = args["page"]
             display_per_page = args["display_per_page"]
             pagination = query_object.paginate(page, display_per_page, False)

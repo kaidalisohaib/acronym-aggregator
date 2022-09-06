@@ -32,14 +32,17 @@ All you need is [docker](https://www.docker.com/products/docker-desktop/). The d
 
 ### Executing program
 
-1. Open a terminal in the current working directory.
-2. Execute the command below to create and start the containers. You can add the `-d` flag if you want to launch the stack in detached mode.
+1. Create a `.env` file inside the backend folder. (Use the `.env.example` for the template)
+2. Open a terminal in the current working directory.
+3. Execute the command below to create and start the containers. You can add the `-d` flag if you want to launch the stack in detached mode.
 
 ```
 docker compose up
 ```
 
-<small>The command should take up to 5 mins to download the image and setup the stack</small>
+<small>The command should take around 6-7 mins to download the images and setup the stack.</small>
+
+4. Once everything has built, open this address `127.0.0.1:4200` in your browser to view the website.
 
 ## Help
 
