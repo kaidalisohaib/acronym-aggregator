@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:18.7.0
+FROM node:20.17.0-bullseye
 
 ## Add the wait script to the image
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
