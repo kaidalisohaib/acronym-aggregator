@@ -10,8 +10,8 @@
 
 A full-stack web application for centralizing, managing, and reporting on organizational acronyms, built with a Python/Flask backend and an Ember.js frontend.
 
-![](./assets/Home.png)
-![](./assets/Upload.png)
+![](https://raw.githubusercontent.com/kaidalisohaib/acronym-aggregator/refs/heads/main/assets/Home.png)
+![](https://raw.githubusercontent.com/kaidalisohaib/acronym-aggregator/refs/heads/main/assets/Upload.png)
 
 
 ---
